@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>夜渡りピッカー</title>
+<style>
+:root{
+  --gold:#f2c14e;
+  --gold-soft:rgba(242,193,78,.55);
+  --card-bg:#15131c;
+  --card-line:rgba(255,255,255,.14);
+  --text:#f3eee2;
+  --muted:#a59f92;
+  --panel:#1b1922;
+  --panel-2:#24212d;
+  --line:#3a3644;
+  --accent:#d9a93a;
+  --danger:#d0574b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:transparent;color:var(--text);
+  font-family:"Yu Mincho","YuMincho","Hiragino Mincho ProN","Noto Serif JP",serif}
+body.display{overflow:hidden}
+body.display.preview{background:radial-gradient(circle at 50% 30%,#2a2433,#0d0b11 70%)}
+body.edit{background:#0f0e14;font-family:"Yu Gothic UI","Meiryo","Hiragino Sans",sans-serif;font-size:14px}
+
+/* ---------- 表示 ---------- */
+#stage{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2vmin;cursor:pointer;user-select:none}
+#title{font-size:4.2vmin;letter-spacing:.3em;margin:0 0 1.6vmin;text-shadow:0 0 1.2vmin rgba(0,0,0,.9),0 0 2vmin var(--gold-soft)}
+#title:empty{display:none}
+#grid{display:grid;grid-template-columns:repeat(var(--cols,5),var(--cw,160px));gap:var(--gap,12px);justify-content:center}
+.cell{position:relative;width:var(--cw,160px);aspect-ratio:3/4;background:var(--card-bg);border:2px solid var(--card-line);
+  border-radius:calc(var(--cw,160px)*.05);overflow:hidden;box-shadow:0 .6vmin 1.6vmin rgba(0,0,0,.6);
+  transition:opacity .4s,filter .4s,transform .25s}
+.cell .art{position:absolute;inset:0 0 28% 0;background:radial-gradient(circle at 50% 45%,var(--c,#555),#0c0b10 85%);display:flex;align-items:center;justify-content:center}
+.cell .art img{width:78%;height:auto;filter:drop-shadow(0 0 .8vmin rgba(0,0,0,.8))}
+.cell .art .initial{font-size:calc(var(--cw,160px)*.42);color:rgba(255,255,255,.85);text-shadow:0 0 1vmin rgba(0,0,0,.8)}
+.cell .label{position:absolute;left:0;right:0;bottom:0;height:28%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,rgba(10,9,14,.85),#0a090e);border-top:2px solid var(--c,#555);padding:0 4%;text-align:center;line-height:1.15}
+.cell .concept{font-size:calc(var(--cw,160px)*.1);color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cell .cname{font-size:calc(var(--cw,160px)*.12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cell.on{border-color:var(--gold);transform:scale(1.07);box-shadow:0 0 0 2px var(--gold),0 0 2.5vmin var(--gold),0 0 5vmin var(--gold-soft);z-index:2}
+#stage.done .cell{opacity:.22;filter:grayscale(1) brightness(.6)}
+#stage.done .cell.win{opacity:1;filter:none;border-color:var(--gold);transform:scale(1.1);z-index:3;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 2px var(--gold),0 0 2vmin var(--gold),0 0 4vmin var(--gold-soft)}50%{box-shadow:0 0 0 3px var(--gold),0 0 4vmin var(--gold),0 0 9vmin var(--gold-soft)}}
+#veil{position:fixed;inset:0;background:radial-gradient(circle at 50% 50%,rgba(0,0,0,.35),rgba(0,0,0,.8));opacity:0;transition:opacity .5s;pointer-events:none}
+#veil.show{opacity:1}
+#result{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.85);opacity:0;pointer-events:none;transition:opacity .5s,transform .5s cubic-bezier(.2,1.4,.4,1);
+  display:flex;flex-direction:column;align-items:center;gap:2.2vmin}
+#result.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#result .cell{transform:none;animation:pulse 1.4s ease-in-out infinite;border-color:var(--gold)}
+#result .r-text{padding:1.2vmin 7vmin;text-align:center;white-space:nowrap;
+  background:linear-gradient(90deg,transparent,rgba(8,7,12,.92) 15%,rgba(8,7,12,.92) 85%,transparent);border-top:1px solid var(--gold-soft);border-bottom:1px solid var(--gold-soft)}
+#result .r-label{font-size:2.4vmin;letter-spacing:.4em;color:var(--muted)}
+#result .r-name{font-size:7vmin;letter-spacing:.12em;color:var(--gold);text-shadow:0 0 2vmin rgba(242,193,78,.6)}
+#hint{position:fixed;bottom:1.4vmin;left:0;right:0;text-align:center;font-size:1.8vmin;color:var(--muted);text-shadow:0 0 .6vmin #000;transition:opacity .4s}
+#hint.off{opacity:0}
+#empty{font-size:3vmin;color:var(--muted);text-shadow:0 0 .6vmin #000}
+
+/* ---------- 設定 ---------- */
+.ed-wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px}
+.ed-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:6px 0 4px}
+.ed-head h1{font-size:22px;margin:0;color:var(--gold);font-family:"Yu Mincho","Hiragino Mincho ProN",serif;letter-spacing:.1em}
+.ed-head span{color:var(--muted);font-size:13px}
+.ed-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.ed-cols{grid-template-columns:1fr}}
+.ed-wrap h2{font-size:16px;margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);color:var(--accent);font-weight:600}
+.ed-note{color:var(--muted);font-size:12.5px;margin:4px 0 10px;line-height:1.7}
+.ed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 18px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label,.chk{color:var(--muted);font-size:12.5px}
+.chk{display:flex;align-items:center;gap:6px;cursor:pointer}
+input[type=text],input[type=number],select{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font:inherit;min-width:0;width:100%}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);flex:none}
+button.b{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 12px;font:inherit;cursor:pointer;white-space:nowrap}
+button.b:hover{border-color:var(--accent)}
+button.b.primary{background:var(--accent);color:#1a1408;border-color:var(--accent);font-weight:700}
+button.b.icon{padding:6px 9px}
+button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
+.rows{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.row.off{opacity:.5}
+.row .ico{width:30px;height:30px;flex:none;border-radius:50%;background:var(--c,#555) center/cover no-repeat}
+.row .grow{flex:1 1 120px}
+.row .sel{flex:0 1 110px}
+.count{color:var(--muted);font-size:12.5px;margin-left:8px}
+.urlbox{display:flex;gap:6px}
+.urlbox input{font-family:Consolas,monospace;font-size:12px}
+.side{position:sticky;top:12px}
+.frame{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000}
+.frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.steps{margin:6px 0 0;padding-left:20px;color:var(--muted);font-size:12.5px;line-height:1.8}
+#toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--accent);color:#1a1408;padding:8px 16px;border-radius:6px;z-index:40;opacity:0;transition:opacity .3s;pointer-events:none;font-family:"Yu Gothic UI","Meiryo",sans-serif;font-weight:700}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+<script>
+(function(){
+'use strict';
+
+// キャラ定義。idはURLに入るので変更しない（追加は末尾へ）
+var CHARS = [
+  {id:'wylder',    name:'追跡者', color:'#c0563b', img:'img/chars/wylder.png'},
+  {id:'guardian',  name:'守護者', color:'#b98b3e', img:'img/chars/guardian.png'},
+  {id:'ironeye',   name:'鉄の目', color:'#5f8f5a', img:'img/chars/ironeye.png'},
+  {id:'duchess',   name:'レディ', color:'#8a5fb0', img:'img/chars/duchess.png'},
+  {id:'raider',    name:'無頼漢', color:'#a0442f', img:'img/chars/raider.png'},
+  {id:'revenant',  name:'復讐者', color:'#6a4c93', img:'img/chars/revenant.png'},
+  {id:'recluse',   name:'隠者',   color:'#3f7fb0', img:'img/chars/recluse.png'},
+  {id:'executor',  name:'執行者', color:'#9c3b5a', img:'img/chars/executor.png'},
+  {id:'scholar',   name:'学者',   color:'#3d9a95', img:'img/chars/scholar.png'},
+  {id:'undertaker',name:'葬儀屋', color:'#6b6b7a', img:'img/chars/undertaker.png'}
+];
+var MAX_ENTRIES = 30;
+var DEFAULT = {
+  title:'次の夜渡り', duration:4, autoStart:true, showHint:true,
+  entries: CHARS.map(function(c){ return {concept:'', charId:c.id, enabled:true}; })
+};
+
+// ---------- URLとの相互変換（設定はすべて ?d= に入る） ----------
+function encode(st){
+  var o = {v:1, t:st.title, s:st.duration, a:st.autoStart?1:0, h:st.showHint?1:0,
+    e:st.entries.map(function(e){ return [e.concept, e.charId, e.enabled?1:0]; })};
+  var bytes = new TextEncoder().encode(JSON.stringify(o)), bin = '';
+  bytes.forEach(function(b){ bin += String.fromCharCode(b); });
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function decode(str){
+  try{
+    var b64 = str.replace(/-/g,'+').replace(/_/g,'/'), bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    var o = JSON.parse(new TextDecoder().decode(bytes));
+    return {
+      title: typeof o.t === 'string' ? o.t : DEFAULT.title,
+      duration: Number(o.s) || 4,
+      autoStart: !!o.a, showHint: !!o.h,
+      entries: (o.e || []).slice(0, MAX_ENTRIES).map(function(x){ return {concept:String(x[0]||''), charId:String(x[1]||''), enabled:!!x[2]}; })
+    };
+  }catch(e){ return null; }
+}
+function baseUrl(){ return location.origin + location.pathname; }
+function displayUrl(st){ return baseUrl() + '?d=' + encode(st); }
+function editUrl(st){ return baseUrl() + '?d=' + encode(st) + '&edit'; }
+
+var params = new URLSearchParams(location.search);
+var state = (params.get('d') && decode(params.get('d'))) || JSON.parse(JSON.stringify(DEFAULT));
+var isEdit = params.has('edit') || !params.get('d');
+
+function charOf(e){ for(var i=0;i<CHARS.length;i++){ if(CHARS[i].id === e.charId) return CHARS[i]; } return {name:'?', color:'#555', img:''}; }
+function el(tag, attrs, kids){
+  var n = document.createElement(tag);
+  if(attrs) for(var k in attrs){
+    if(k === 'text') n.textContent = attrs[k];
+    else if(k.slice(0,2) === 'on') n.addEventListener(k.slice(2), attrs[k]);
+    else if(k in n) n[k] = attrs[k];
+    else n.setAttribute(k, attrs[k]);
+  }
+  (kids || []).forEach(function(c){ if(c) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+  return n;
+}
+var toastTimer;
+function toast(msg){ var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2000); }
+
+if(isEdit) startEditor(); else startDisplay();
+
+// ================= 表示モード（OBS用） =================
+function startDisplay(){
+  document.body.classList.add('display');
+  if(!window.obsstudio) document.body.classList.add('preview');
+  var app = document.getElementById('app');
+  var titleEl = el('div', {id:'title', text:state.title || ''});
+  var grid = el('div', {id:'grid'});
+  var empty = el('div', {id:'empty', text:'抽選対象のエントリーがない', hidden:true});
+  var stage = el('div', {id:'stage'}, [titleEl, grid, empty]);
+  var rName = el('div', {className:'r-name'});
+  var resultEl = el('div', {id:'result'});
+  var veil = el('div', {id:'veil'});
+  var hint = el('div', {id:'hint', text:'クリック / Space で抽選'});
+  hint.classList.toggle('off', !state.showHint);
+  app.appendChild(stage); app.appendChild(veil); app.appendChild(resultEl); app.appendChild(hint);
+  var pool = state.entries.filter(function(e){ return e.enabled; });
+  var cells = pool.map(function(e){
+    var c = charOf(e);
+    var art = el('div', {className:'art'});
+    var fallback = el('span', {className:'initial', text:(c.name || '?').charAt(0)});
+    if(c.img){
+      var img = el('img', {src:c.img, alt:''});
+      img.onerror = function(){ img.replaceWith(fallback); };
+      art.appendChild(img);
+    } else art.appendChild(fallback);
+    var label = el('div', {className:'label'}, [
+      e.concept ? el('div', {className:'concept', text:e.concept}) : null,
+      el('div', {className:'cname', text:c.name})
+    ]);
+    var cell = el('div', {className:'cell'}, [art, label]);
+    cell.style.setProperty('--c', c.color);
+    grid.appendChild(cell);
+    return cell;
+  });
+  empty.hidden = pool.length > 0;
+
+  // 画面に収まる列数とカード幅を求める（カードは3:4）
+  function layout(){
+    var n = cells.length; if(!n) return;
+    var W = window.innerWidth * 0.94, H = window.innerHeight * 0.9 - titleEl.offsetHeight;
+    var gap = Math.max(6, Math.min(W, H) * 0.018), best = 0, bestCols = 1;
+    for(var cols=1; cols<=n; cols++){
+      var rows = Math.ceil(n/cols);
+      var w = Math.min((W - gap*(cols-1))/cols, ((H - gap*(rows-1))/rows) * 0.75);
+      if(w > best){ best = w; bestCols = cols; }
+    }
+    grid.style.setProperty('--cols', bestCols);
+    grid.style.setProperty('--cw', Math.floor(best) + 'px');
+    grid.style.setProperty('--gap', Math.floor(gap) + 'px');
+  }
+  layout();
+  window.addEventListener('resize', layout);
+
+  var running = false, lastDrawAt = 0;
+  function draw(){
+    var now = Date.now();
+    if(running || !cells.length || now - lastDrawAt < 800) return;
+    running = true; lastDrawAt = now;
+    stage.classList.remove('done'); resultEl.classList.remove('show'); veil.classList.remove('show');
+    cells.forEach(function(c){ c.classList.remove('win', 'on'); });
+
+    var n = cells.length, winner = Math.floor(Math.random()*n);
+    var dur = Math.min(20, Math.max(1, Number(state.duration) || 4)) * 1000;
+    // 最初は速く、終盤にかけて減速。同じマスに連続で止まらない
+    var seq = [], t = 0, cur = -1;
+    while(t < dur){
+      var p = t/dur, next;
+      do { next = Math.floor(Math.random()*n); } while(n > 1 && next === cur);
+      seq.push([t, next]); cur = next;
+      t += 45 + 430*Math.pow(p, 2.4);
+    }
+    if(n > 1 && cur === winner){ do { seq[seq.length-1][1] = Math.floor(Math.random()*n); } while(seq[seq.length-1][1] === winner); }
+    seq.push([t + 120, winner]);
+
+    var prev = null;
+    seq.forEach(function(s, i){
+      setTimeout(function(){
+        if(prev) prev.classList.remove('on');
+        prev = cells[s[1]]; prev.classList.add('on');
+        if(i === seq.length-1) setTimeout(function(){ finish(winner); }, 500);
+      }, s[0]);
+    });
+  }
+  function finish(i){
+    cells[i].classList.remove('on'); cells[i].classList.add('win');
+    stage.classList.add('done');
+    // 当選カードを複製して中央に大きく出す
+    var big = cells[i].cloneNode(true);
+    big.classList.remove('win', 'on');
+    big.style.setProperty('--cw', Math.floor(Math.min(window.innerHeight * 0.5 * 0.75, window.innerWidth * 0.3)) + 'px');
+    rName.textContent = (pool[i].concept || '') + charOf(pool[i]).name;
+    resultEl.innerHTML = '';
+    resultEl.appendChild(big);
+    resultEl.appendChild(el('div', {className:'r-text'}, [el('div', {className:'r-label', text:'次の出撃'}), rName]));
+    veil.classList.add('show');
+    resultEl.classList.add('show');
+    running = false;
+  }
+
+  stage.addEventListener('click', draw);
+  document.addEventListener('keydown', function(ev){
+    if(ev.code === 'Space' || ev.code === 'Enter'){ ev.preventDefault(); draw(); }
+  });
+  // OBSでソースが表示状態になったら自動抽選
+  window.addEventListener('obsSourceActiveChanged', function(ev){
+    if(ev.detail && ev.detail.active && state.autoStart) setTimeout(draw, 400);
+  });
+  if(state.autoStart) setTimeout(draw, 700);
+}
+
+// ================= 設定モード =================
+function startEditor(){
+  document.body.classList.add('edit');
+  var app = document.getElementById('app');
+  var obsInput = el('input', {type:'text', readOnly:true});
+  var frame = el('iframe', {title:'プレビュー'});
+  var countEl = el('span', {className:'count'});
+  var listBox = el('div', {className:'rows'});
+  var frameTimer;
+
+  function sync(reloadPreview){
+    history.replaceState(null, '', editUrl(state));
+    obsInput.value = displayUrl(state);
+    countEl.textContent = state.entries.length + ' / ' + MAX_ENTRIES + '件';
+    if(reloadPreview !== false){
+      clearTimeout(frameTimer);
+      frameTimer = setTimeout(function(){ frame.src = displayUrl(state); }, 500);
+    }
+  }
+  function copy(text, msg){
+    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+      .then(function(){ toast(msg); })
+      .catch(function(){ obsInput.select(); document.execCommand('copy'); toast(msg); });
+  }
+
+  function buildList(){
+    listBox.innerHTML = '';
+    state.entries.forEach(function(e, idx){
+      var row = el('div', {className:'row' + (e.enabled ? '' : ' off')});
+      var ico = el('div', {className:'ico'});
+      function paintIco(){ var c = charOf(e); ico.style.setProperty('--c', c.color); ico.style.backgroundImage = c.img ? 'url("' + c.img + '")' : ''; }
+      paintIco();
+      var sel = el('select', {className:'sel', onchange:function(){ e.charId = this.value; paintIco(); sync(); }});
+      CHARS.forEach(function(c){ sel.appendChild(el('option', {value:c.id, text:c.name, selected:c.id === e.charId})); });
+      [
+        el('input', {type:'checkbox', checked:e.enabled, title:'抽選対象にする', onchange:function(){ e.enabled = this.checked; row.classList.toggle('off', !e.enabled); sync(); }}),
+        ico,
+        el('input', {type:'text', className:'grow', value:e.concept, maxLength:16, placeholder:'コンセプト（例：ガーカン）', oninput:function(){ e.concept = this.value; sync(); }}),
+        sel,
+        el('button', {className:'b icon', text:'↑', title:'上へ', onclick:function(){ move(idx, -1); }}),
+        el('button', {className:'b icon', text:'↓', title:'下へ', onclick:function(){ move(idx, 1); }}),
+        el('button', {className:'b icon', text:'複製', onclick:function(){
+          if(state.entries.length >= MAX_ENTRIES){ toast('最大' + MAX_ENTRIES + '件まで'); return; }
+          state.entries.splice(idx+1, 0, {concept:e.concept, charId:e.charId, enabled:e.enabled}); buildList(); sync();
+        }}),
+        el('button', {className:'b icon danger', text:'×', title:'削除', onclick:function(){ state.entries.splice(idx, 1); buildList(); sync(); }})
+      ].forEach(function(k){ row.appendChild(k); });
+      listBox.appendChild(row);
+    });
+  }
+  function move(i, d){
+    var j = i + d; if(j < 0 || j >= state.entries.length) return;
+    var t = state.entries[i]; state.entries[i] = state.entries[j]; state.entries[j] = t; buildList(); sync();
+  }
+
+  var left = el('div', {}, [
+    el('h2', {text:'基本設定'}),
+    el('div', {className:'ed-grid'}, [
+      el('div', {className:'field'}, [el('label', {text:'タイトル（空なら非表示）'}), el('input', {type:'text', value:state.title, maxLength:30, oninput:function(){ state.title = this.value; sync(); }})]),
+      el('div', {className:'field'}, [el('label', {text:'演出の長さ（秒）'}), el('input', {type:'number', min:1, max:20, step:.5, value:state.duration, oninput:function(){ state.duration = Number(this.value) || 4; sync(); }})]),
+      el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.autoStart, onchange:function(){ state.autoStart = this.checked; sync(); }}), '表示されたら自動で抽選する']),
+      el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.showHint, onchange:function(){ state.showHint = this.checked; sync(); }}), '下に操作ヒントを出す'])
+    ]),
+    el('h2', {}, ['エントリー（コンセプト × キャラ）', countEl]),
+    el('p', {className:'ed-note', text:'チェックを外すと抽選から外れる。コンセプトが空ならキャラ名だけ出る。同じキャラを複製してコンセプト違いを作れる。'}),
+    listBox,
+    el('p', {}, [el('button', {className:'b', text:'＋ エントリーを追加', onclick:function(){
+      if(state.entries.length >= MAX_ENTRIES){ toast('最大' + MAX_ENTRIES + '件まで'); return; }
+      state.entries.push({concept:'', charId:CHARS[0].id, enabled:true}); buildList(); sync();
+    }})])
+  ]);
+
+  var right = el('div', {className:'side'}, [
+    el('h2', {text:'プレビュー'}),
+    el('div', {className:'frame'}, [frame]),
+    el('p', {className:'ed-note', text:'クリックで抽選を試せる。'}),
+    el('h2', {text:'OBS用URL'}),
+    el('div', {className:'urlbox'}, [obsInput, el('button', {className:'b primary', text:'コピー', onclick:function(){ copy(obsInput.value, 'OBS用URLをコピーした'); }})]),
+    el('ol', {className:'steps'}, [
+      el('li', {text:'OBSで「ソース」→「ブラウザ」を追加し、URLに貼る（幅1920・高さ1080）'}),
+      el('li', {text:'抽選し直すときは、ソースを右クリック→「対話」でクリック。または「表示されたら自動で抽選」をONにしてシーンを切り替える'}),
+      el('li', {text:'設定を変えたらURLが変わるので、OBS側も貼り直す'})
+    ]),
+    el('h2', {text:'あとで編集するには'}),
+    el('p', {className:'ed-note', text:'データはこのページのURLの中だけに入っていて、サーバーには何も保存されない。今のアドレスバーのURLをブックマークしておけば、続きから編集できる。'}),
+    el('button', {className:'b', text:'編集用URLをコピー', onclick:function(){ copy(editUrl(state), '編集用URLをコピーした'); }})
+  ]);
+
+  app.appendChild(el('div', {className:'ed-wrap'}, [
+    el('div', {className:'ed-head'}, [el('h1', {text:'夜渡りピッカー'}), el('span', {text:'次に出撃するキャラを抽選する、OBS用ブラウザソース'})]),
+    el('div', {className:'ed-cols'}, [left, right])
+  ]));
+  buildList();
+  sync();
+}
+})();
+</script>
+</body>
+</html>
