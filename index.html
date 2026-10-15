@@ -22,41 +22,45 @@
 html,body{margin:0;height:100%;background:transparent;color:var(--text);
   font-family:"Yu Mincho","YuMincho","Hiragino Mincho ProN","Noto Serif JP",serif}
 body.display{overflow:hidden}
+body.instant *{transition:none !important}
 body.display.preview{background:radial-gradient(circle at 50% 30%,#2a2433,#0d0b11 70%)}
 body.edit{background:#0f0e14;font-family:"Yu Gothic UI","Meiryo","Hiragino Sans",sans-serif;font-size:14px}
 
 /* ---------- 表示 ---------- */
-#stage{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2vmin;cursor:pointer;user-select:none}
-#title{font-size:4.2vmin;letter-spacing:.3em;margin:0 0 1.6vmin;text-shadow:0 0 1.2vmin rgba(0,0,0,.9),0 0 2vmin var(--gold-soft)}
-#title:empty{display:none}
+/* 1920×1080で固定レイアウトし、ウィンドウに合わせて拡大縮小する */
+#canvas{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--k,1));overflow:hidden}
+#stage{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;user-select:none}
 #grid{display:grid;grid-template-columns:repeat(var(--cols,5),var(--cw,160px));gap:var(--gap,12px);justify-content:center}
 .cell{position:relative;width:var(--cw,160px);aspect-ratio:3/4;background:var(--card-bg);border:2px solid var(--card-line);
-  border-radius:calc(var(--cw,160px)*.05);overflow:hidden;box-shadow:0 .6vmin 1.6vmin rgba(0,0,0,.6);
+  border-radius:calc(var(--cw,160px)*.05);overflow:hidden;box-shadow:0 6px 17px rgba(0,0,0,.6);
   transition:opacity .4s,filter .4s,transform .25s}
 .cell .art{position:absolute;inset:0 0 28% 0;background:radial-gradient(circle at 50% 45%,var(--c,#555),#0c0b10 85%);display:flex;align-items:center;justify-content:center}
-.cell .art img{width:78%;height:auto;filter:drop-shadow(0 0 .8vmin rgba(0,0,0,.8))}
-.cell .art .initial{font-size:calc(var(--cw,160px)*.42);color:rgba(255,255,255,.85);text-shadow:0 0 1vmin rgba(0,0,0,.8)}
+.cell .art img{width:78%;height:auto;filter:drop-shadow(0 0 9px rgba(0,0,0,.8))}
+.cell .art .initial{font-size:calc(var(--cw,160px)*.42);color:rgba(255,255,255,.85);text-shadow:0 0 11px rgba(0,0,0,.8)}
 .cell .label{position:absolute;left:0;right:0;bottom:0;height:28%;display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:linear-gradient(180deg,rgba(10,9,14,.85),#0a090e);border-top:2px solid var(--c,#555);padding:0 4%;text-align:center;line-height:1.15}
 .cell .concept{font-size:calc(var(--cw,160px)*.1);color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cell .cname{font-size:calc(var(--cw,160px)*.12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.cell.on{border-color:var(--gold);transform:scale(1.07);box-shadow:0 0 0 2px var(--gold),0 0 2.5vmin var(--gold),0 0 5vmin var(--gold-soft);z-index:2}
+.cell.on{border-color:var(--gold);transform:scale(1.07);box-shadow:0 0 0 2px var(--gold),0 0 27px var(--gold),0 0 54px var(--gold-soft);z-index:2}
 #stage.done .cell{opacity:.22;filter:grayscale(1) brightness(.6)}
 #stage.done .cell.win{opacity:1;filter:none;border-color:var(--gold);transform:scale(1.1);z-index:3;animation:pulse 1.4s ease-in-out infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 2px var(--gold),0 0 2vmin var(--gold),0 0 4vmin var(--gold-soft)}50%{box-shadow:0 0 0 3px var(--gold),0 0 4vmin var(--gold),0 0 9vmin var(--gold-soft)}}
-#veil{position:fixed;inset:0;background:radial-gradient(circle at 50% 50%,rgba(0,0,0,.35),rgba(0,0,0,.8));opacity:0;transition:opacity .5s;pointer-events:none}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 2px var(--gold),0 0 22px var(--gold),0 0 43px var(--gold-soft)}50%{box-shadow:0 0 0 3px var(--gold),0 0 43px var(--gold),0 0 97px var(--gold-soft)}}
+#veil{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(0,0,0,.35),rgba(0,0,0,.8));opacity:0;transition:opacity .5s;pointer-events:none}
 #veil.show{opacity:1}
-#result{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.85);opacity:0;pointer-events:none;transition:opacity .5s,transform .5s cubic-bezier(.2,1.4,.4,1);
-  display:flex;flex-direction:column;align-items:center;gap:2.2vmin}
+#result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.85);opacity:0;pointer-events:none;transition:opacity .5s,transform .5s cubic-bezier(.2,1.4,.4,1);
+  display:flex;flex-direction:column;align-items:center;gap:24px}
 #result.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 #result .cell{transform:none;animation:pulse 1.4s ease-in-out infinite;border-color:var(--gold)}
-#result .r-text{padding:1.2vmin 7vmin;text-align:center;white-space:nowrap;
+#result .r-text{padding:13px 76px;text-align:center;white-space:nowrap;
   background:linear-gradient(90deg,transparent,rgba(8,7,12,.92) 15%,rgba(8,7,12,.92) 85%,transparent);border-top:1px solid var(--gold-soft);border-bottom:1px solid var(--gold-soft)}
-#result .r-label{font-size:2.4vmin;letter-spacing:.4em;color:var(--muted)}
-#result .r-name{font-size:7vmin;letter-spacing:.12em;color:var(--gold);text-shadow:0 0 2vmin rgba(242,193,78,.6)}
-#hint{position:fixed;bottom:1.4vmin;left:0;right:0;text-align:center;font-size:1.8vmin;color:var(--muted);text-shadow:0 0 .6vmin #000;transition:opacity .4s}
-#hint.off{opacity:0}
-#empty{font-size:3vmin;color:var(--muted);text-shadow:0 0 .6vmin #000}
+#result .r-label{font-size:26px;letter-spacing:.4em;color:var(--muted)}
+#result .r-name{font-size:76px;letter-spacing:.12em;color:var(--gold);text-shadow:0 0 22px rgba(242,193,78,.6)}
+#empty{font-size:32px;color:var(--muted);text-shadow:0 0 6px #000}
+/* 決定後の指定位置表示：結果画面ごとフェードアウトして、当選カードだけを指定位置にフェードイン */
+#stage{transition:opacity .6s}
+#canvas.pinned #stage,#canvas.pinned #veil,#canvas.pinned #result{opacity:0}
+.pin{position:absolute;opacity:0;transition:opacity .6s;border-color:var(--gold)}
+.pin.show{opacity:1}
 
 /* ---------- 設定 ---------- */
 .ed-wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px}
@@ -67,9 +71,17 @@ body.edit{background:#0f0e14;font-family:"Yu Gothic UI","Meiryo","Hiragino Sans"
 @media (max-width:860px){.ed-cols{grid-template-columns:1fr}}
 .ed-wrap h2{font-size:16px;margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);color:var(--accent);font-weight:600}
 .ed-note{color:var(--muted);font-size:12.5px;margin:4px 0 10px;line-height:1.7}
-.ed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 18px}
 .field{display:flex;flex-direction:column;gap:4px}
 .field label,.chk{color:var(--muted);font-size:12.5px}
+.pin-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pin-block.disabled{opacity:.45;pointer-events:none}
+.pp-box{position:relative;width:100%;aspect-ratio:16/9;margin-top:10px;border:1px solid var(--line);border-radius:8px;overflow:hidden;
+  background:#000 linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px) 0 0/10% 10%,#000 linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px) 0 0/10% 10%}
+.pp-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform:scale(var(--k,.3));transform-origin:0 0;font-family:"Yu Mincho","YuMincho","Hiragino Mincho ProN","Noto Serif JP",serif}
+.pp-card{position:absolute;width:var(--cw,160px);aspect-ratio:3/4;background:var(--card-bg);border:2px solid var(--gold);border-radius:calc(var(--cw,160px)*.05);
+  overflow:hidden;cursor:move;touch-action:none;user-select:none;box-shadow:0 0 0 2px var(--gold),0 0 22px var(--gold-soft)}
+.pp-card img{pointer-events:none}
+.pp-handle{position:absolute;right:0;bottom:0;width:48px;height:48px;background:var(--gold);clip-path:polygon(100% 0,100% 100%,0 100%);cursor:nwse-resize;z-index:2}
 .chk{display:flex;align-items:center;gap:6px;cursor:pointer}
 input[type=text],input[type=number],select{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font:inherit;min-width:0;width:100%}
 input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);flex:none}
@@ -90,7 +102,9 @@ button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 .side{position:sticky;top:12px}
 .frame{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000}
 .frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.steps{margin:6px 0 0;padding-left:20px;color:var(--muted);font-size:12.5px;line-height:1.8}
+.howto{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 16px 12px;margin:14px 0 4px}
+.howto h2{margin:0 0 6px;padding:0;border:0}
+.steps{margin:0;padding-left:20px;color:var(--muted);font-size:12.5px;line-height:1.8}
 #toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--accent);color:#1a1408;padding:8px 16px;border-radius:6px;z-index:40;opacity:0;transition:opacity .3s;pointer-events:none;font-family:"Yu Gothic UI","Meiryo",sans-serif;font-weight:700}
 #toast.show{opacity:1}
 </style>
@@ -116,14 +130,18 @@ var CHARS = [
   {id:'undertaker',name:'葬儀屋', color:'#6b6b7a', img:'img/chars/undertaker.png'}
 ];
 var MAX_ENTRIES = 30;
+var DURATION_MS = 4000; // 演出の長さは固定
+var CANVAS_W = 1920, CANVAS_H = 1080; // 表示サイズは固定
+var PIN_DELAY_MS = 5000; // 結果画面を見せてから指定位置表示に切り替えるまで
 var DEFAULT = {
-  title:'次の夜渡り', duration:4, autoStart:true, showHint:true,
+  autoStart:true,
+  pin:{on:false, x:40, y:40, w:200}, // 決定後に当選カードを置く位置（1920×1080基準・カード左上・幅px）
   entries: CHARS.map(function(c){ return {concept:'', charId:c.id, enabled:true}; })
 };
 
 // ---------- URLとの相互変換（設定はすべて ?d= に入る） ----------
 function encode(st){
-  var o = {v:1, t:st.title, s:st.duration, a:st.autoStart?1:0, h:st.showHint?1:0,
+  var o = {v:1, a:st.autoStart?1:0, p:st.pin.on ? [st.pin.x, st.pin.y, st.pin.w] : 0,
     e:st.entries.map(function(e){ return [e.concept, e.charId, e.enabled?1:0]; })};
   var bytes = new TextEncoder().encode(JSON.stringify(o)), bin = '';
   bytes.forEach(function(b){ bin += String.fromCharCode(b); });
@@ -136,9 +154,8 @@ function decode(str){
     for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
     var o = JSON.parse(new TextDecoder().decode(bytes));
     return {
-      title: typeof o.t === 'string' ? o.t : DEFAULT.title,
-      duration: Number(o.s) || 4,
-      autoStart: !!o.a, showHint: !!o.h,
+      autoStart: !!o.a,
+      pin: Array.isArray(o.p) ? {on:true, x:Number(o.p[0])||0, y:Number(o.p[1])||0, w:Number(o.p[2])||DEFAULT.pin.w} : JSON.parse(JSON.stringify(DEFAULT.pin)),
       entries: (o.e || []).slice(0, MAX_ENTRIES).map(function(x){ return {concept:String(x[0]||''), charId:String(x[1]||''), enabled:!!x[2]}; })
     };
   }catch(e){ return null; }
@@ -166,6 +183,25 @@ function el(tag, attrs, kids){
 var toastTimer;
 function toast(msg){ var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2000); }
 
+// エントリー1件分のカード（表示画面と位置調整プレビューで共用）
+function makeCell(e){
+  var c = charOf(e);
+  var art = el('div', {className:'art'});
+  var fallback = el('span', {className:'initial', text:(c.name || '?').charAt(0)});
+  if(c.img){
+    var img = el('img', {src:c.img, alt:''});
+    img.onerror = function(){ img.replaceWith(fallback); };
+    art.appendChild(img);
+  } else art.appendChild(fallback);
+  var label = el('div', {className:'label'}, [
+    e.concept ? el('div', {className:'concept', text:e.concept}) : null,
+    el('div', {className:'cname', text:c.name})
+  ]);
+  var cell = el('div', {className:'cell'}, [art, label]);
+  cell.style.setProperty('--c', c.color);
+  return cell;
+}
+
 if(isEdit) startEditor(); else startDisplay();
 
 // ================= 表示モード（OBS用） =================
@@ -173,32 +209,17 @@ function startDisplay(){
   document.body.classList.add('display');
   if(!window.obsstudio) document.body.classList.add('preview');
   var app = document.getElementById('app');
-  var titleEl = el('div', {id:'title', text:state.title || ''});
   var grid = el('div', {id:'grid'});
-  var empty = el('div', {id:'empty', text:'抽選対象のエントリーがない', hidden:true});
-  var stage = el('div', {id:'stage'}, [titleEl, grid, empty]);
+  var empty = el('div', {id:'empty', text:'抽選対象のエントリーがありません', hidden:true});
+  var stage = el('div', {id:'stage'}, [grid, empty]);
   var rName = el('div', {className:'r-name'});
   var resultEl = el('div', {id:'result'});
   var veil = el('div', {id:'veil'});
-  var hint = el('div', {id:'hint', text:'クリック / Space で抽選'});
-  hint.classList.toggle('off', !state.showHint);
-  app.appendChild(stage); app.appendChild(veil); app.appendChild(resultEl); app.appendChild(hint);
+  var canvas = el('div', {id:'canvas'}, [stage, veil, resultEl]);
+  app.appendChild(canvas);
   var pool = state.entries.filter(function(e){ return e.enabled; });
   var cells = pool.map(function(e){
-    var c = charOf(e);
-    var art = el('div', {className:'art'});
-    var fallback = el('span', {className:'initial', text:(c.name || '?').charAt(0)});
-    if(c.img){
-      var img = el('img', {src:c.img, alt:''});
-      img.onerror = function(){ img.replaceWith(fallback); };
-      art.appendChild(img);
-    } else art.appendChild(fallback);
-    var label = el('div', {className:'label'}, [
-      e.concept ? el('div', {className:'concept', text:e.concept}) : null,
-      el('div', {className:'cname', text:c.name})
-    ]);
-    var cell = el('div', {className:'cell'}, [art, label]);
-    cell.style.setProperty('--c', c.color);
+    var cell = makeCell(e);
     grid.appendChild(cell);
     return cell;
   });
@@ -207,7 +228,7 @@ function startDisplay(){
   // 画面に収まる列数とカード幅を求める（カードは3:4）
   function layout(){
     var n = cells.length; if(!n) return;
-    var W = window.innerWidth * 0.94, H = window.innerHeight * 0.9 - titleEl.offsetHeight;
+    var W = CANVAS_W * 0.94, H = CANVAS_H * 0.9;
     var gap = Math.max(6, Math.min(W, H) * 0.018), best = 0, bestCols = 1;
     for(var cols=1; cols<=n; cols++){
       var rows = Math.ceil(n/cols);
@@ -219,18 +240,54 @@ function startDisplay(){
     grid.style.setProperty('--gap', Math.floor(gap) + 'px');
   }
   layout();
-  window.addEventListener('resize', layout);
+  // ウィンドウが1920×1080でなくても、縦横比を保ったまま収める
+  function fit(){ canvas.style.setProperty('--k', Math.min(window.innerWidth / CANVAS_W, window.innerHeight / CANVAS_H)); }
+  fit();
+  window.addEventListener('resize', fit);
 
   var running = false, lastDrawAt = 0;
+  var timers = [], pinTimer = null, pinEl = null;
+  function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
+  function unpin(){
+    clearTimeout(pinTimer); pinTimer = null;
+    canvas.classList.remove('pinned');
+    if(pinEl){ pinEl.remove(); pinEl = null; }
+  }
+  // 抽選前の状態に戻す（途中の演出も止める）。アニメーションなしで即座に切り替える
+  function reset(){
+    timers.forEach(clearTimeout); timers = [];
+    running = false; lastDrawAt = 0;
+    document.body.classList.add('instant');
+    unpin();
+    stage.classList.remove('done'); resultEl.classList.remove('show'); veil.classList.remove('show');
+    cells.forEach(function(c){ c.classList.remove('win', 'on'); });
+    resultEl.innerHTML = '';
+    void document.body.offsetHeight;
+    document.body.classList.remove('instant');
+  }
+  // 当選カードだけを指定位置に出す（結果画面はフェードアウト）
+  function pinWinner(i){
+    var p = state.pin;
+    pinEl = cells[i].cloneNode(true);
+    pinEl.className = 'cell pin';
+    pinEl.style.setProperty('--cw', Math.max(20, p.w) + 'px');
+    pinEl.style.left = p.x + 'px';
+    pinEl.style.top = p.y + 'px';
+    canvas.appendChild(pinEl);
+    canvas.classList.add('pinned');
+    void pinEl.offsetHeight;
+    pinEl.classList.add('show');
+  }
   function draw(){
     var now = Date.now();
     if(running || !cells.length || now - lastDrawAt < 800) return;
     running = true; lastDrawAt = now;
+    unpin();
     stage.classList.remove('done'); resultEl.classList.remove('show'); veil.classList.remove('show');
     cells.forEach(function(c){ c.classList.remove('win', 'on'); });
 
     var n = cells.length, winner = Math.floor(Math.random()*n);
-    var dur = Math.min(20, Math.max(1, Number(state.duration) || 4)) * 1000;
+    var dur = DURATION_MS;
     // 最初は速く、終盤にかけて減速。同じマスに連続で止まらない
     var seq = [], t = 0, cur = -1;
     while(t < dur){
@@ -244,10 +301,10 @@ function startDisplay(){
 
     var prev = null;
     seq.forEach(function(s, i){
-      setTimeout(function(){
+      later(function(){
         if(prev) prev.classList.remove('on');
         prev = cells[s[1]]; prev.classList.add('on');
-        if(i === seq.length-1) setTimeout(function(){ finish(winner); }, 500);
+        if(i === seq.length-1) later(function(){ finish(winner); }, 500);
       }, s[0]);
     });
   }
@@ -257,7 +314,7 @@ function startDisplay(){
     // 当選カードを複製して中央に大きく出す
     var big = cells[i].cloneNode(true);
     big.classList.remove('win', 'on');
-    big.style.setProperty('--cw', Math.floor(Math.min(window.innerHeight * 0.5 * 0.75, window.innerWidth * 0.3)) + 'px');
+    big.style.setProperty('--cw', Math.floor(Math.min(CANVAS_H * 0.5 * 0.75, CANVAS_W * 0.3)) + 'px');
     rName.textContent = (pool[i].concept || '') + charOf(pool[i]).name;
     resultEl.innerHTML = '';
     resultEl.appendChild(big);
@@ -265,17 +322,21 @@ function startDisplay(){
     veil.classList.add('show');
     resultEl.classList.add('show');
     running = false;
+    if(state.pin.on) pinTimer = setTimeout(function(){ pinWinner(i); }, PIN_DELAY_MS);
   }
 
-  stage.addEventListener('click', draw);
   document.addEventListener('keydown', function(ev){
     if(ev.code === 'Space' || ev.code === 'Enter'){ ev.preventDefault(); draw(); }
   });
-  // OBSでソースが表示状態になったら自動抽選
-  window.addEventListener('obsSourceActiveChanged', function(ev){
-    if(ev.detail && ev.detail.active && state.autoStart) setTimeout(draw, 400);
-  });
-  if(state.autoStart) setTimeout(draw, 700);
+  // OBSで非表示になったら抽選前の状態に戻し、表示されたら（自動抽選ONなら）抽選する。
+  // 目のアイコンでの表示切替（Visible）とシーン切替（Active）の両方を拾う
+  function onObsShow(shown){
+    reset();
+    if(shown && state.autoStart) later(draw, 400);
+  }
+  window.addEventListener('obsSourceActiveChanged', function(ev){ if(ev.detail) onObsShow(ev.detail.active); });
+  window.addEventListener('obsSourceVisibleChanged', function(ev){ if(ev.detail) onObsShow(ev.detail.visible); });
+  if(state.autoStart) later(draw, 700);
 }
 
 // ================= 設定モード =================
@@ -292,6 +353,7 @@ function startEditor(){
     history.replaceState(null, '', editUrl(state));
     obsInput.value = displayUrl(state);
     countEl.textContent = state.entries.length + ' / ' + MAX_ENTRIES + '件';
+    refreshPinCard();
     if(reloadPreview !== false){
       clearTimeout(frameTimer);
       frameTimer = setTimeout(function(){ frame.src = displayUrl(state); }, 500);
@@ -320,7 +382,7 @@ function startEditor(){
         el('button', {className:'b icon', text:'↑', title:'上へ', onclick:function(){ move(idx, -1); }}),
         el('button', {className:'b icon', text:'↓', title:'下へ', onclick:function(){ move(idx, 1); }}),
         el('button', {className:'b icon', text:'複製', onclick:function(){
-          if(state.entries.length >= MAX_ENTRIES){ toast('最大' + MAX_ENTRIES + '件まで'); return; }
+          if(state.entries.length >= MAX_ENTRIES){ toast('登録できるのは最大' + MAX_ENTRIES + '件までです'); return; }
           state.entries.splice(idx+1, 0, {concept:e.concept, charId:e.charId, enabled:e.enabled}); buildList(); sync();
         }}),
         el('button', {className:'b icon danger', text:'×', title:'削除', onclick:function(){ state.entries.splice(idx, 1); buildList(); sync(); }})
@@ -333,41 +395,118 @@ function startEditor(){
     var t = state.entries[i]; state.entries[i] = state.entries[j]; state.entries[j] = t; buildList(); sync();
   }
 
-  var left = el('div', {}, [
-    el('h2', {text:'基本設定'}),
-    el('div', {className:'ed-grid'}, [
-      el('div', {className:'field'}, [el('label', {text:'タイトル（空なら非表示）'}), el('input', {type:'text', value:state.title, maxLength:30, oninput:function(){ state.title = this.value; sync(); }})]),
-      el('div', {className:'field'}, [el('label', {text:'演出の長さ（秒）'}), el('input', {type:'number', min:1, max:20, step:.5, value:state.duration, oninput:function(){ state.duration = Number(this.value) || 4; sync(); }})]),
-      el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.autoStart, onchange:function(){ state.autoStart = this.checked; sync(); }}), '表示されたら自動で抽選する']),
-      el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.showHint, onchange:function(){ state.showHint = this.checked; sync(); }}), '下に操作ヒントを出す'])
+  // ---- 決定後の表示位置：数値入力＋ドラッグで動かせる位置調整プレビュー ----
+  var PIN_LIMIT = {x:[0, CANVAS_W], y:[0, CANVAS_H], w:[20, CANVAS_W]};
+  var pinInputs = {};
+  function pinField(label, key){
+    pinInputs[key] = el('input', {type:'number', min:PIN_LIMIT[key][0], max:PIN_LIMIT[key][1], step:1, value:state.pin[key], oninput:function(){
+      var v = Math.round(Number(this.value));
+      if(this.value === '' || isNaN(v)) return;
+      state.pin[key] = Math.min(PIN_LIMIT[key][1], Math.max(PIN_LIMIT[key][0], v)); paintPin(); sync();
+    }});
+    return el('div', {className:'field'}, [el('label', {text:label}), pinInputs[key]]);
+  }
+  var pinCard = el('div', {className:'cell pp-card'}), pinCardKey = '';
+  var pinHandle = el('div', {className:'pp-handle', title:'ドラッグでサイズ変更'});
+  var pinStage = el('div', {className:'pp-stage'}, [pinCard]);
+  var pinBox = el('div', {className:'pp-box'}, [pinStage]);
+  function sampleEntry(){
+    for(var i=0;i<state.entries.length;i++){ if(state.entries[i].enabled) return state.entries[i]; }
+    return state.entries[0] || {concept:'', charId:CHARS[0].id};
+  }
+  // 見本カードは抽選対象の先頭エントリー。中身が変わったときだけ作り直す
+  function refreshPinCard(){
+    var e = sampleEntry(), key = e.concept + '\n' + e.charId;
+    if(key === pinCardKey) return;
+    pinCardKey = key;
+    pinCard.innerHTML = '';
+    var cell = makeCell(e);
+    while(cell.firstChild) pinCard.appendChild(cell.firstChild);
+    pinCard.style.setProperty('--c', cell.style.getPropertyValue('--c'));
+    pinCard.appendChild(pinHandle);
+  }
+  function paintPin(){
+    pinCard.style.left = state.pin.x + 'px';
+    pinCard.style.top = state.pin.y + 'px';
+    pinCard.style.setProperty('--cw', state.pin.w + 'px');
+  }
+  function fitPin(){ pinStage.style.setProperty('--k', pinBox.clientWidth / CANVAS_W); }
+  function setPin(x, y, w){
+    // ドラッグでは画面の外にはみ出さないようにする
+    w = Math.min(PIN_LIMIT.w[1], Math.max(PIN_LIMIT.w[0], w), CANVAS_H * 0.75);
+    state.pin.w = Math.round(w);
+    state.pin.x = Math.round(Math.min(CANVAS_W - w, Math.max(0, x)));
+    state.pin.y = Math.round(Math.min(CANVAS_H - w / 0.75, Math.max(0, y)));
+    ['x', 'y', 'w'].forEach(function(k){ pinInputs[k].value = state.pin[k]; });
+    paintPin(); sync();
+  }
+  // カード本体のドラッグで移動、右下のつまみで幅を変える
+  pinCard.addEventListener('pointerdown', function(ev){
+    ev.preventDefault();
+    var k = pinBox.clientWidth / CANVAS_W, sx = ev.clientX, sy = ev.clientY;
+    var start = {x:state.pin.x, y:state.pin.y, w:state.pin.w}, resize = ev.target === pinHandle;
+    pinCard.setPointerCapture(ev.pointerId);
+    function onMove(m){
+      var dx = (m.clientX - sx) / k, dy = (m.clientY - sy) / k;
+      if(resize) setPin(start.x, start.y, start.w + Math.max(dx, dy * 0.75));
+      else setPin(start.x + dx, start.y + dy, start.w);
+    }
+    function onUp(){ pinCard.removeEventListener('pointermove', onMove); pinCard.removeEventListener('pointerup', onUp); pinCard.removeEventListener('pointercancel', onUp); }
+    pinCard.addEventListener('pointermove', onMove);
+    pinCard.addEventListener('pointerup', onUp);
+    pinCard.addEventListener('pointercancel', onUp);
+  });
+  var pinFields = el('div', {className:'pin-block' + (state.pin.on ? '' : ' disabled')}, [
+    el('div', {className:'pin-fields'}, [
+      pinField('横位置 X（px）', 'x'),
+      pinField('縦位置 Y（px）', 'y'),
+      pinField('幅（px）', 'w')
     ]),
+    pinBox,
+    el('p', {className:'ed-note', text:'枠の中は1920×1080の画面を縮小したものです。カードをドラッグすると移動、右下のつまみをドラッグするとサイズを変えられます。'})
+  ]);
+  refreshPinCard(); paintPin();
+  if(window.ResizeObserver) new ResizeObserver(fitPin).observe(pinBox);
+  else window.addEventListener('resize', fitPin);
+
+  var left = el('div', {}, [
     el('h2', {}, ['エントリー（コンセプト × キャラ）', countEl]),
-    el('p', {className:'ed-note', text:'チェックを外すと抽選から外れる。コンセプトが空ならキャラ名だけ出る。同じキャラを複製してコンセプト違いを作れる。'}),
+    el('p', {className:'ed-note', text:'チェックを外すと抽選から外れます。コンセプトが空の場合はキャラ名だけが表示されます。同じキャラを複製して、コンセプト違いのエントリーを作ることもできます。'}),
     listBox,
     el('p', {}, [el('button', {className:'b', text:'＋ エントリーを追加', onclick:function(){
-      if(state.entries.length >= MAX_ENTRIES){ toast('最大' + MAX_ENTRIES + '件まで'); return; }
+      if(state.entries.length >= MAX_ENTRIES){ toast('登録できるのは最大' + MAX_ENTRIES + '件までです'); return; }
       state.entries.push({concept:'', charId:CHARS[0].id, enabled:true}); buildList(); sync();
-    }})])
+    }})]),
+    el('h2', {text:'手動で抽選するには'}),
+    el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:!state.autoStart, onchange:function(){ state.autoStart = !this.checked; sync(); }}), '手動で抽選する']),
+    el('p', {className:'ed-note', text:'チェックを入れると、表示されても自動では抽選されなくなります。抽選するときは、OBSでソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押してください。抽選し直すときも同じ操作です。'}),
+    el('h2', {text:'決定後の表示（オプション）'}),
+    el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.pin.on, onchange:function(){ state.pin.on = this.checked; pinFields.classList.toggle('disabled', !state.pin.on); sync(); }}), '決定したキャラを指定した位置に表示する']),
+    el('p', {className:'ed-note', text:'結果画面を5秒表示したあと、当選カードだけを指定した位置に切り替えて表示します。位置は1920×1080の画面の左上を0として、カードの左上の座標をpxで指定してください。サイズはカードの幅で、高さは幅に合わせて決まります。'}),
+    pinFields
   ]);
 
   var right = el('div', {className:'side'}, [
     el('h2', {text:'プレビュー'}),
     el('div', {className:'frame'}, [frame]),
-    el('p', {className:'ed-note', text:'クリックで抽選を試せる。'}),
     el('h2', {text:'OBS用URL'}),
-    el('div', {className:'urlbox'}, [obsInput, el('button', {className:'b primary', text:'コピー', onclick:function(){ copy(obsInput.value, 'OBS用URLをコピーした'); }})]),
-    el('ol', {className:'steps'}, [
-      el('li', {text:'OBSで「ソース」→「ブラウザ」を追加し、URLに貼る（幅1920・高さ1080）'}),
-      el('li', {text:'抽選し直すときは、ソースを右クリック→「対話」でクリック。または「表示されたら自動で抽選」をONにしてシーンを切り替える'}),
-      el('li', {text:'設定を変えたらURLが変わるので、OBS側も貼り直す'})
-    ]),
+    el('div', {className:'urlbox'}, [obsInput, el('button', {className:'b primary', text:'コピー', onclick:function(){ copy(obsInput.value, 'OBS用URLをコピーしました'); }})]),
     el('h2', {text:'あとで編集するには'}),
-    el('p', {className:'ed-note', text:'データはこのページのURLの中だけに入っていて、サーバーには何も保存されない。今のアドレスバーのURLをブックマークしておけば、続きから編集できる。'}),
-    el('button', {className:'b', text:'編集用URLをコピー', onclick:function(){ copy(editUrl(state), '編集用URLをコピーした'); }})
+    el('p', {className:'ed-note', text:'設定データはこのページのURLの中だけに入っていて、サーバーには何も保存されません。今のアドレスバーのURLをブックマークしておけば、続きから編集できます。'}),
+    el('button', {className:'b', text:'編集用URLをコピー', onclick:function(){ copy(editUrl(state), '編集用URLをコピーしました'); }})
   ]);
 
   app.appendChild(el('div', {className:'ed-wrap'}, [
     el('div', {className:'ed-head'}, [el('h1', {text:'夜渡りピッカー'}), el('span', {text:'次に出撃するキャラを抽選する、OBS用ブラウザソース'})]),
+    el('div', {className:'howto'}, [
+      el('h2', {text:'使い方'}),
+      el('ol', {className:'steps'}, [
+        el('li', {text:'「エントリー」に、抽選したいコンセプトとキャラを登録してください。チェックを外したエントリーは抽選に入りません。'}),
+        el('li', {text:'「OBS用URL」の「コピー」を押し、OBSで「ソース」→「ブラウザ」を追加して、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。背景は透過されます。'}),
+        el('li', {text:'このソースが表示されると、自動で抽選が始まります。シーンを切り替えたり、ソースを表示し直したりするたびに抽選されます。'}),
+        el('li', {text:'設定を変えるとURLも変わるため、OBS側のURLも貼り直してください。'})
+      ])
+    ]),
     el('div', {className:'ed-cols'}, [left, right])
   ]));
   buildList();
