@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ナイトレイン キャラランダムツール（OBS対応）</title>
+<meta name="description" content="ナイトレインで次に出撃するキャラをランダムに抽選するツール。OBSのブラウザソースとしても使えます">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ナイトレイン キャラランダムツール（OBS対応）">
+<meta property="og:description" content="ナイトレインで次に出撃するキャラをランダムに抽選するツール。OBSのブラウザソースとしても使えます">
+<meta property="og:url" content="https://esusan.github.io/nightreign-picker/">
+<meta property="og:image" content="https://esusan.github.io/nightreign-picker/img/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://esusan.github.io/nightreign-picker/img/ogp.png">
+<link rel="icon" href="img/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
@@ -109,7 +118,7 @@ body.edit{background:#0f0e14;font-size:14px}
 /* ---------- 設定 ---------- */
 .ed-wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px}
 .ed-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:6px 0 4px}
-.ed-head h1{font-size:22px;margin:0;color:var(--gold);font-weight:700;letter-spacing:.1em}
+.ed-head h1{font-size:22px;margin:0;color:var(--accent);font-weight:700;letter-spacing:.1em}
 .ed-head span{color:var(--muted);font-size:13px}
 /* Xへのリンク（遺物ページと同じ丸アイコン） */
 .social{flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;
@@ -697,6 +706,10 @@ function startEditor(){
   xLink.setAttribute('aria-label', 'X');
   xLink.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
 
+  var ytLink = el('a', {className:'social', href:'https://www.youtube.com/@%E3%81%88%E3%81%99%E3%81%95%E3%82%93-0', target:'_blank', rel:'noopener noreferrer', title:'YouTube'});
+  ytLink.setAttribute('aria-label', 'YouTube');
+  ytLink.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.13-2.14C19.51 3.5 12 3.5 12 3.5s-7.51 0-9.37.56A3.02 3.02 0 0 0 .5 6.2 31.6 31.6 0 0 0 0 12a31.6 31.6 0 0 0 .5 5.8 3.02 3.02 0 0 0 2.13 2.14C4.49 20.5 12 20.5 12 20.5s7.51 0 9.37-.56a3.02 3.02 0 0 0 2.13-2.14A31.6 31.6 0 0 0 24 12a31.6 31.6 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.4 3.6z"/></svg>';
+
   // プレビューはページ上部に1カラムで置く
   var preview = el('div', {className:'preview-top'}, [
     el('div', {className:'frame'}, [frame])
@@ -726,7 +739,7 @@ function startEditor(){
       el('div', {className:'foot-links'}, [
         el('span', {className:'foot-label', text:'作成者'}),
         el('span', {className:'foot-name', text:'えすさん'}),
-        xLink
+        xLink, ytLink
       ]),
       el('div', {className:'foot-links'}, [
         el('span', {className:'foot-label', text:'姉妹ツール'}),
