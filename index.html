@@ -111,6 +111,20 @@ body.edit{background:#0f0e14;font-size:14px}
 .ed-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:6px 0 4px}
 .ed-head h1{font-size:22px;margin:0;color:var(--gold);font-weight:700;letter-spacing:.1em}
 .ed-head span{color:var(--muted);font-size:13px}
+/* Xへのリンク（遺物ページと同じ丸アイコン） */
+.social{flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;
+  color:var(--muted);border:1px solid var(--line);transition:color .2s,border-color .2s}
+.social:hover{color:var(--gold);border-color:var(--gold)}
+.ed-foot{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;line-height:1.8}
+.ed-foot p{margin:12px 0 0}
+.foot-links{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:36px}
+.foot-links + .foot-links{margin-top:8px}
+.foot-label{width:6.5em;box-sizing:border-box;text-align:center;padding:2px 8px;font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:4px}
+.foot-name{color:var(--text);font-size:13.5px}
+.ed-foot .social{width:30px;height:30px}
+.ed-foot .social svg{width:16px;height:16px}
+.foot-link{color:var(--text);font-size:13.5px;text-decoration:none;border-bottom:1px solid var(--line);transition:color .2s,border-color .2s}
+.foot-link:hover{color:var(--gold);border-color:var(--gold)}
 .ed-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
 .ed-cols.wide-left{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}
 @media (max-width:860px){.ed-cols,.ed-cols.wide-left{grid-template-columns:1fr}}
@@ -679,6 +693,10 @@ function startEditor(){
     ])
   ]);
 
+  var xLink = el('a', {className:'social', href:'https://x.com/u_se_nr', target:'_blank', rel:'noopener noreferrer', title:'X'});
+  xLink.setAttribute('aria-label', 'X');
+  xLink.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
+
   // プレビューはページ上部に1カラムで置く
   var preview = el('div', {className:'preview-top'}, [
     el('div', {className:'frame'}, [frame])
@@ -703,7 +721,19 @@ function startEditor(){
       ]),
       el('p', {className:'howto-note', text:'※設定を変えるとURLも変わるため、OBS側のURLも貼り直してください。'})
     ]),
-    el('div', {className:'ed-cols'}, [obsLeft, obsRight])
+    el('div', {className:'ed-cols'}, [obsLeft, obsRight]),
+    el('div', {className:'ed-foot'}, [
+      el('div', {className:'foot-links'}, [
+        el('span', {className:'foot-label', text:'作成者'}),
+        el('span', {className:'foot-name', text:'えすさん'}),
+        xLink
+      ]),
+      el('div', {className:'foot-links'}, [
+        el('span', {className:'foot-label', text:'姉妹ツール'}),
+        el('a', {className:'foot-link', href:'https://github.com/esusan/nightreign-dict', target:'_blank', rel:'noopener noreferrer', text:'ナイトレイン辞書（わんコメの読み上げ用ユーザー辞書）'})
+      ]),
+      el('p', {text:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'})
+    ])
   ]));
   buildList();
   sync();
