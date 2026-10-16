@@ -4,10 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ナイトレイン キャラランダムツール（OBS対応）</title>
-<meta name="description" content="ナイトレインで次に出撃するキャラをランダムに抽選するツール。OBSのブラウザソースとしても使えます">
+<meta name="description" content="ナイトレインで次に出撃するキャラをランダムに抽選するツール。OBSのブラウザソースとしても使えます / Randomly picks the Nightfarer for your next expedition in NIGHTREIGN. Also works as an OBS browser source.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="ナイトレイン キャラランダムツール（OBS対応）">
-<meta property="og:description" content="ナイトレインで次に出撃するキャラをランダムに抽選するツール。OBSのブラウザソースとしても使えます">
+<!-- リンクカード用。XなどはJSを実行しないので日英併記にしておく -->
+<meta property="og:title" content="ナイトレイン キャラランダムツール / NIGHTREIGN Random Nightfarer Picker">
+<meta property="og:description" content="次に出撃するキャラをランダムに抽選するツール。OBS対応 / Randomly picks the Nightfarer for your next expedition. Works as an OBS browser source.">
 <meta property="og:url" content="https://esusan.github.io/nightreign-picker/">
 <meta property="og:image" content="https://esusan.github.io/nightreign-picker/img/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -64,12 +65,12 @@ body.edit{background:#0f0e14;font-size:14px}
 .cell .art img{display:block;width:100%;height:auto;-webkit-mask:linear-gradient(180deg,transparent,#000 22%);mask:linear-gradient(180deg,transparent,#000 22%)}
 .cell .art .initial{margin:auto;font-size:calc(var(--cw,160px)*.42);color:rgba(255,255,255,.85);text-shadow:0 0 11px rgba(0,0,0,.8)}
 /* 見出し：キャラ名の上に、二つ名のようにコンセプトを小さく添える（無くても行の高さは確保して、キャラ名の位置を揃える） */
-.cell .label{position:absolute;left:0;right:0;top:calc(var(--u)*13);z-index:1;display:flex;flex-direction:column;align-items:center;padding:0 4%;
+.cell .label{position:absolute;left:0;right:0;top:calc(var(--u)*7);z-index:1;display:flex;flex-direction:column;align-items:center;padding:0 4%;
   text-align:center;line-height:1.2;text-shadow:0 0 6px #000,0 0 3px #000}
 .cell .ttl{font-size:calc(var(--u)*19);color:#eef1fb;letter-spacing:.12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 /* キャラ名の下の線。文字幅ではなくカード幅基準にする（.ttlはoverflow:hiddenなので.label側に付ける） */
 .cell .label::after{content:"";display:block;width:75%;height:1px;margin-top:calc(var(--u)*7);background:linear-gradient(90deg,transparent,var(--gold) 30%,var(--gold) 70%,transparent)}
-.cell .sub{margin-bottom:calc(var(--u)*2);font-size:calc(var(--u)*17);color:var(--gold);letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cell .sub{margin-bottom:0;font-size:calc(var(--u)*17);color:var(--gold);letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cell.on{border-color:var(--gold);transform:scale(1.07);box-shadow:0 0 0 2px var(--gold),0 0 27px var(--gold),0 0 54px var(--gold-soft);z-index:2}
 .cell.out{opacity:.65;filter:grayscale(1) brightness(.75)}
 #stage.done .cell{opacity:0}
@@ -121,7 +122,13 @@ body.edit{background:#0f0e14;font-size:14px}
 .ed-wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px}
 .ed-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:6px 0 4px}
 .ed-head h1{font-size:22px;margin:0;color:var(--accent);font-weight:700;letter-spacing:.1em}
-.ed-head span{color:var(--muted);font-size:13px}
+.ed-head .ed-lead{color:var(--muted);font-size:13px}
+/* 言語切替（見出しの行の右端） */
+.lang-switch{margin-left:auto;display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;align-self:center}
+.lang-btn{font:inherit;font-size:15px;padding:8px 18px;color:var(--muted);background:transparent;border:0;cursor:pointer;transition:color .2s,background .2s}
+.lang-btn + .lang-btn{border-left:1px solid var(--line)}
+.lang-btn:hover{color:var(--text)}
+.lang-btn.on{color:#1a1408;background:var(--accent);font-weight:700;cursor:default}
 /* Xへのリンク（遺物ページと同じ丸アイコン） */
 .social{flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;
   color:var(--muted);border:1px solid var(--line);transition:color .2s,border-color .2s}
@@ -180,7 +187,9 @@ button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 .row.off{opacity:.5}
 .row .ico{width:30px;height:30px;flex:none;border-radius:50%;background:var(--c,#555) center/cover no-repeat}
 .row .grow{flex:1 1 120px}
-.row .sel{flex:0 1 110px}
+.row .sel{flex:0 1 124px} /* 英語の「Undertaker」が切れない幅 */
+/* スマホ幅では1行に収まらないので、コンセプト欄を1段目、キャラ選択とボタンを2段目に折り返す */
+@media (max-width:520px){.row{flex-wrap:wrap}.row .grow{flex:1 1 calc(100% - 80px);min-width:0}.row .sel{flex:1 1 110px}}
 .count{color:var(--muted);font-size:12.5px;margin-left:8px}
 .urlbox{display:flex;gap:6px}
 .urlbox input{font-family:Consolas,monospace;font-size:12px}
@@ -206,17 +215,124 @@ button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 
 // キャラ定義。idはURLに入るので変更しない（追加は末尾へ）
 var CHARS = [
-  {id:'wylder',    name:'追跡者', color:'#c0563b', img:'img/chars/wylder.png'},
-  {id:'guardian',  name:'守護者', color:'#b98b3e', img:'img/chars/guardian.png'},
-  {id:'ironeye',   name:'鉄の目', color:'#5f8f5a', img:'img/chars/ironeye.png'},
-  {id:'duchess',   name:'レディ', color:'#8a5fb0', img:'img/chars/duchess.png'},
-  {id:'raider',    name:'無頼漢', color:'#a0442f', img:'img/chars/raider.png'},
-  {id:'revenant',  name:'復讐者', color:'#6a4c93', img:'img/chars/revenant.png'},
-  {id:'recluse',   name:'隠者',   color:'#3f7fb0', img:'img/chars/recluse.png'},
-  {id:'executor',  name:'執行者', color:'#9c3b5a', img:'img/chars/executor.png'},
-  {id:'scholar',   name:'学者',   color:'#3d9a95', img:'img/chars/scholar.png'},
-  {id:'undertaker',name:'葬儀屋', color:'#6b6b7a', img:'img/chars/undertaker.png'}
+  {id:'wylder',    name:{ja:'追跡者', en:'Wylder'},     color:'#c0563b', img:'img/chars/wylder.png'},
+  {id:'guardian',  name:{ja:'守護者', en:'Guardian'},   color:'#b98b3e', img:'img/chars/guardian.png'},
+  {id:'ironeye',   name:{ja:'鉄の目', en:'Ironeye'},    color:'#5f8f5a', img:'img/chars/ironeye.png'},
+  {id:'duchess',   name:{ja:'レディ', en:'Duchess'},    color:'#8a5fb0', img:'img/chars/duchess.png'},
+  {id:'raider',    name:{ja:'無頼漢', en:'Raider'},     color:'#a0442f', img:'img/chars/raider.png'},
+  {id:'revenant',  name:{ja:'復讐者', en:'Revenant'},   color:'#6a4c93', img:'img/chars/revenant.png'},
+  {id:'recluse',   name:{ja:'隠者',   en:'Recluse'},    color:'#3f7fb0', img:'img/chars/recluse.png'},
+  {id:'executor',  name:{ja:'執行者', en:'Executor'},   color:'#9c3b5a', img:'img/chars/executor.png'},
+  {id:'scholar',   name:{ja:'学者',   en:'Scholar'},    color:'#3d9a95', img:'img/chars/scholar.png'},
+  {id:'undertaker',name:{ja:'葬儀屋', en:'Undertaker'}, color:'#6b6b7a', img:'img/chars/undertaker.png'}
 ];
+
+// ---------- 表示言語（日本語／英語） ----------
+// 抽選画面は設定（?d=）の l だけで決める（OBSのブラウザは日本語環境でも en-US を返すことがあるため自動判定しない）
+var I18N = {
+  ja:{
+    title:'ナイトレイン キャラランダムツール（OBS対応）',
+    heading:'ナイトレイン キャラランダムツール',
+    lead:'次に出撃するキャラを抽選するツール。OBSのブラウザソースとしても使えます',
+    empty:'抽選対象がありません',
+    draw:'抽選する',
+    again:'もう一度抽選する',
+    next:'次の出撃',
+    preview:'プレビュー',
+    count:'{0} / {1}件',
+    maxToast:'登録できるのは最大{0}件までです',
+    enable:'抽選対象にする',
+    conceptPh:'コンセプト（例：ハルハル）',
+    sampleConcept:'ハルハル',
+    up:'上へ', down:'下へ', dup:'複製', del:'削除',
+    resize:'ドラッグでサイズ変更',
+    pinX:'横位置 X（px）', pinY:'縦位置 Y（px）', pinW:'幅（px）',
+    pinBoxNote:'枠の中は1920×1080の画面を縮小したものです。カードをドラッグすると移動、右下のつまみをドラッグするとサイズを変えられます。',
+    color:'色', alpha:'不透明度',
+    entriesH:'コンセプト × キャラ',
+    entriesNote:'チェックを外すと抽選から外れます。コンセプトが空の場合はキャラ名だけが表示されます。同じキャラを複製して、コンセプト違いを作ることもできます。',
+    add:'＋ 追加',
+    noRepH:'同じ結果の連続を避ける',
+    noRep0:'しない', noRep1:'前回と同じものは出さない', noRep2:'全部出るまで同じものは出さない',
+    noRepNote:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。設定を変えたとき、ページやソースを再読み込みしたとき、OBSやブラウザのタブを閉じたときはリセットされます。',
+    saveH:'設定を保存するには',
+    saveNote:'今のアドレスバーのURLをブックマークしておけば、設定を保存しておけます。設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。',
+    openDefault:'初期設定のページを開く',
+    optH:'オプション',
+    scaleH:'カード一覧と結果画面の大きさ',
+    scaleNote:'カード一覧と結果画面の大きさを、画面いっぱい（100%）を基準に縮小できます。「決定後の表示」のカードの大きさは変わりません。',
+    bgH:'背景色', bgChk:'背景色を付ける', bgNote:'チェックを外しているときは背景が透過されます。',
+    pinH:'決定後の表示', pinChk:'決定したキャラを指定した位置に表示する',
+    pinNote:'結果画面を5秒表示した後、決定したキャラのカードだけを指定した位置に切り替えて表示します。位置は1920×1080の画面の左上を0としています。',
+    btnH:'抽選ボタン', btnChk:'画面に「抽選する」ボタンを表示する',
+    btnNote:'ボタンは配信画面にも映ります。映したくない場合はチェックを外してください（ソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押すと抽選できます）。',
+    autoH:'自動で抽選する', autoChk:'画面が表示されたら自動で抽選する',
+    autoNote:'ページを開いたときや、シーンを切り替えたりソースを表示し直したりしたときに、自動で抽選が始まります。',
+    urlH:'抽選画面のURL', copy:'コピー', copied:'抽選画面のURLをコピーしました',
+    howtoH:'OBSでの使い方',
+    step1:'必要に応じて下の「オプション」を設定してから、「抽選画面のURL」の「コピー」を押してください。',
+    step2:'OBSで「ソース」→「ブラウザ」を追加し、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。',
+    step3:'抽選するときは、ソースを右クリック→「対話」を開き、「抽選する」ボタンを押すか、画面をクリックしてからSpaceキーを押してください。「自動で抽選する」にチェックを入れると、シーンを切り替えたりソースを表示し直したりするたびに自動で抽選されます。',
+    howtoNote:'※設定を変えるとURLも変わるため、OBS側のURLも貼り直してください。',
+    author:'作成者', authorName:'えすさん',
+    others:'ほかのツール', dictLink:'ナイトレイン辞書（わんコメの読み上げ用ユーザー辞書）',
+    disclaimer:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'
+  },
+  en:{
+    title:'NIGHTREIGN Random Nightfarer Picker (OBS Ready)',
+    heading:'NIGHTREIGN Random Nightfarer Picker',
+    lead:'Randomly picks the Nightfarer for your next expedition. Also works as an OBS browser source.',
+    empty:'No entries to draw from',
+    draw:'Draw',
+    again:'Draw Again',
+    next:'Next Expedition',
+    preview:'Preview',
+    count:'{0} / {1}',
+    maxToast:'You can add up to {0} entries',
+    enable:'Include in the draw',
+    conceptPh:'Concept (e.g. Bleed)',
+    sampleConcept:'Bleed',
+    up:'Move up', down:'Move down', dup:'Duplicate', del:'Delete',
+    resize:'Drag to resize',
+    pinX:'X (px)', pinY:'Y (px)', pinW:'Width (px)',
+    pinBoxNote:'The box is a scaled-down 1920×1080 screen. Drag the card to move it, or drag the handle at the bottom right to resize it.',
+    color:'Color', alpha:'Opacity',
+    entriesH:'Concept × Nightfarer',
+    entriesNote:'Uncheck an entry to leave it out of the draw. If the concept is empty, only the Nightfarer\'s name is shown. Duplicate a Nightfarer to make entries with different concepts.',
+    add:'+ Add',
+    noRepH:'Avoid Repeats',
+    noRep0:'Off', noRep1:'Never the same as the last result', noRep2:'No repeats until every entry has come up',
+    noRepNote:'The draw history is kept when you hide the source or switch scenes in OBS. It resets when you change settings, reload the page or source, or close OBS or the browser tab.',
+    saveH:'Saving Your Settings',
+    saveNote:'Bookmark the URL in your address bar to save your settings. All settings live only in this page\'s URL; nothing is saved on a server.',
+    openDefault:'Open with Default Settings',
+    optH:'Options',
+    scaleH:'Card List and Result Size',
+    scaleNote:'Scales down the card list and the result screen, with 100% filling the screen. Does not change the card size in "Keep Result on Screen".',
+    bgH:'Background Color', bgChk:'Use a background color', bgNote:'When unchecked, the background is transparent.',
+    pinH:'Keep Result on Screen', pinChk:'Show the chosen Nightfarer at a set position',
+    pinNote:'After the result screen shows for 5 seconds, only the chosen card stays on screen at the set position. Positions are measured from the top-left of a 1920×1080 screen.',
+    btnH:'Draw Button', btnChk:'Show the "Draw" button on screen',
+    btnNote:'The button also appears on stream. To hide it, uncheck this (you can still draw by right-clicking the source → "Interact", clicking the screen, and pressing Space).',
+    autoH:'Auto Draw', autoChk:'Draw automatically when the screen is shown',
+    autoNote:'A draw starts automatically when the page opens, when you switch scenes, or when you show the source again.',
+    urlH:'Picker Screen URL', copy:'Copy', copied:'Copied the picker screen URL',
+    howtoH:'Using with OBS',
+    step1:'Set the "Options" below if needed, then click "Copy" under "Picker Screen URL".',
+    step2:'In OBS, add a "Browser" source under "Sources" and paste the URL. Set the width to 1920 and the height to 1080.',
+    step3:'To draw, right-click the source → "Interact", then click the "Draw" button, or click the screen and press Space. With "Auto Draw" checked, a draw runs every time you switch scenes or show the source again.',
+    howtoNote:'* Changing settings also changes the URL, so paste the new URL into OBS again.',
+    author:'Created by', authorName:'esusan',
+    others:'Other Tools', dictLink:'Nightreign Dictionary (Japanese text-to-speech dictionary for OneComme)',
+    disclaimer:'* This is an unofficial fan tool, not affiliated with the game\'s developer or publisher. Game images are the property of their respective owners.'
+  }
+};
+var LANG = 'ja';
+function t(k){
+  var s = I18N[LANG][k] !== undefined ? I18N[LANG][k] : I18N.ja[k], args = arguments;
+  return String(s).replace(/\{(\d)\}/g, function(m, n){ return args[Number(n) + 1]; });
+}
+function charName(c){ return c.name[LANG] || c.name.ja; }
 var MAX_ENTRIES = 30;
 var DURATION_MS = 4000; // 演出の長さは固定
 var CANVAS_W = 1920, CANVAS_H = 1080; // 表示サイズは固定
@@ -229,6 +345,7 @@ var DEFAULT = {
   noRepeat:0, // 連続を避ける：0=しない 1=前回と同じものは出さない 2=全部出るまで同じものは出さない
   bg:{on:true, color:'#000000', alpha:80}, // 抽選画面の背景色と不透明度%（OFFなら透過）
   pin:{on:false, x:1050, y:840, w:160}, // 決定後に当選カードを置く位置（1920×1080基準・カード左上・幅px）
+  lang:'ja', // 表示言語（ja / en）
   entries: CHARS.map(function(c){ return {concept:'', charId:c.id, enabled:true}; })
 };
 
@@ -241,7 +358,7 @@ function bgCss(bg){
 
 // ---------- URLとの相互変換（設定はすべて ?d= に入る） ----------
 function encode(st){
-  var o = {v:1, a:st.autoStart?1:0, k:st.button?1:0, z:st.scale, r:st.noRepeat, b:st.bg.on ? bgCss(st.bg) : 0, p:st.pin.on ? [st.pin.x, st.pin.y, st.pin.w] : 0,
+  var o = {v:1, l:st.lang, a:st.autoStart?1:0, k:st.button?1:0, z:st.scale, r:st.noRepeat, b:st.bg.on ? bgCss(st.bg) : 0, p:st.pin.on ? [st.pin.x, st.pin.y, st.pin.w] : 0,
     e:st.entries.map(function(e){ return [e.concept, e.charId, e.enabled?1:0]; })};
   var bytes = new TextEncoder().encode(JSON.stringify(o)), bin = '';
   bytes.forEach(function(b){ bin += String.fromCharCode(b); });
@@ -254,6 +371,7 @@ function decode(str){
     for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
     var o = JSON.parse(new TextDecoder().decode(bytes));
     return {
+      lang: o.l === 'en' ? 'en' : 'ja', // lが無い古いURLは日本語
       autoStart: !!o.a,
       button: o.k === undefined ? DEFAULT.button : !!o.k, // kが無い古いURLは初期値（ON）
       scale: Math.min(SCALE_MAX, Math.max(SCALE_MIN, Number(o.z) || DEFAULT.scale)),
@@ -274,8 +392,14 @@ function editUrl(st){ return baseUrl() + '?d=' + encode(st) + '&edit'; }
 var params = new URLSearchParams(location.search);
 var state = (params.get('d') && decode(params.get('d'))) || JSON.parse(JSON.stringify(DEFAULT));
 var isEdit = params.has('edit') || !params.get('d');
+// ?lang=en|ja があればそれを優先（英語版へ直接リンクする用）。設定の無い初回の編集画面だけはブラウザの言語で決める
+if(params.get('lang') === 'en' || params.get('lang') === 'ja') state.lang = params.get('lang');
+else if(!params.get('d')) state.lang = /^ja/i.test(navigator.language || '') ? 'ja' : 'en';
+LANG = state.lang;
+document.documentElement.lang = LANG;
+document.title = t('title');
 
-function charOf(e){ for(var i=0;i<CHARS.length;i++){ if(CHARS[i].id === e.charId) return CHARS[i]; } return {name:'?', color:'#555', img:''}; }
+function charOf(e){ for(var i=0;i<CHARS.length;i++){ if(CHARS[i].id === e.charId) return CHARS[i]; } return {name:{ja:'?'}, color:'#555', img:''}; }
 function el(tag, attrs, kids){
   var n = document.createElement(tag);
   if(attrs) for(var k in attrs){
@@ -294,7 +418,7 @@ function toast(msg){ var t = document.getElementById('toast'); t.textContent = m
 function makeCell(e){
   var c = charOf(e);
   var art = el('div', {className:'art'});
-  var fallback = el('span', {className:'initial', text:(c.name || '?').charAt(0)});
+  var fallback = el('span', {className:'initial', text:(charName(c) || '?').charAt(0)});
   if(c.img){
     var img = el('img', {src:c.img, alt:''});
     img.onerror = function(){ img.replaceWith(fallback); };
@@ -303,7 +427,7 @@ function makeCell(e){
   // コンセプトの有無で情報量が偏らないよう、見出しは常に出す
   var label = el('div', {className:'label'}, [
     el('div', {className:'sub', text:e.concept || ' '}),
-    el('div', {className:'ttl', text:c.name})
+    el('div', {className:'ttl', text:charName(c)})
   ]);
   var cell = el('div', {className:'cell'}, [art, label]);
   cell.style.setProperty('--c', c.color);
@@ -329,11 +453,11 @@ function startDisplay(){
   if(!window.obsstudio) document.body.classList.add('preview');
   var app = document.getElementById('app');
   var grid = el('div', {id:'grid'});
-  var empty = el('div', {id:'empty', text:'抽選対象がありません', hidden:true});
+  var empty = el('div', {id:'empty', text:t('empty'), hidden:true});
   // 「抽選する」ボタン。一覧の下と結果画面の下に1つずつ置き、状態に応じてどちらかだけ見せる
   function drawButton(text){ return state.button ? el('button', {className:'draw-btn', text:text, onclick:function(ev){ this.blur(); draw(); }}) : null; }
   // 自動抽選のときは表示と同時に抽選が始まるので、一覧側のボタンは出さない（結果画面の「もう一度」は出す）
-  var stageBtn = state.autoStart ? null : drawButton('抽選する');
+  var stageBtn = state.autoStart ? null : drawButton(t('draw'));
   var stage = el('div', {id:'stage'}, [grid, empty, stageBtn]);
   var rName = el('div', {className:'r-name'});
   var resultEl = el('div', {id:'result'});
@@ -479,11 +603,11 @@ function startDisplay(){
     big.style.setProperty('--cw', Math.floor(Math.min(CANVAS_H * 0.5 * 0.75, CANVAS_W * 0.3)) + 'px');
     rName.innerHTML = '';
     if(pool[i].concept) rName.appendChild(el('span', {className:'r-concept', text:pool[i].concept}));
-    rName.appendChild(document.createTextNode(charOf(pool[i]).name));
+    rName.appendChild(document.createTextNode(charName(charOf(pool[i]))));
     resultEl.innerHTML = '';
     resultEl.appendChild(big);
-    resultEl.appendChild(el('div', {className:'r-text'}, [el('div', {className:'r-label', text:'次の出撃'}), rName]));
-    var againBtn = drawButton('もう一度抽選する');
+    resultEl.appendChild(el('div', {className:'r-text'}, [el('div', {className:'r-label', text:t('next')}), rName]));
+    var againBtn = drawButton(t('again'));
     if(againBtn) resultEl.appendChild(againBtn);
     resultEl.classList.add('show');
     running = false;
@@ -512,7 +636,7 @@ function startEditor(){
   document.body.classList.add('edit');
   var app = document.getElementById('app');
   var obsInput = el('input', {type:'text', readOnly:true});
-  var frame = el('iframe', {title:'プレビュー'});
+  var frame = el('iframe', {title:t('preview')});
   var countEl = el('span', {className:'count'});
   var listBox = el('div', {className:'rows'});
   var frameTimer;
@@ -520,7 +644,7 @@ function startEditor(){
   function sync(reloadPreview){
     history.replaceState(null, '', editUrl(state));
     obsInput.value = displayUrl(state);
-    countEl.textContent = state.entries.length + ' / ' + MAX_ENTRIES + '件';
+    countEl.textContent = t('count', state.entries.length, MAX_ENTRIES);
     refreshPinCard();
     if(reloadPreview !== false){
       clearTimeout(frameTimer);
@@ -541,19 +665,19 @@ function startEditor(){
       function paintIco(){ var c = charOf(e); ico.style.setProperty('--c', c.color); ico.style.backgroundImage = c.img ? 'url("' + c.img + '")' : ''; }
       paintIco();
       var sel = el('select', {className:'sel', onchange:function(){ e.charId = this.value; paintIco(); sync(); }});
-      CHARS.forEach(function(c){ sel.appendChild(el('option', {value:c.id, text:c.name, selected:c.id === e.charId})); });
+      CHARS.forEach(function(c){ sel.appendChild(el('option', {value:c.id, text:charName(c), selected:c.id === e.charId})); });
       [
-        el('input', {type:'checkbox', checked:e.enabled, title:'抽選対象にする', onchange:function(){ e.enabled = this.checked; row.classList.toggle('off', !e.enabled); sync(); }}),
+        el('input', {type:'checkbox', checked:e.enabled, title:t('enable'), onchange:function(){ e.enabled = this.checked; row.classList.toggle('off', !e.enabled); sync(); }}),
         ico,
-        el('input', {type:'text', className:'grow', value:e.concept, maxLength:16, placeholder:'コンセプト（例：ハルハル）', oninput:function(){ e.concept = this.value; sync(); }}),
+        el('input', {type:'text', className:'grow', value:e.concept, maxLength:16, placeholder:t('conceptPh'), oninput:function(){ e.concept = this.value; sync(); }}),
         sel,
-        el('button', {className:'b icon', text:'↑', title:'上へ', onclick:function(){ move(idx, -1); }}),
-        el('button', {className:'b icon', text:'↓', title:'下へ', onclick:function(){ move(idx, 1); }}),
-        el('button', {className:'b icon', text:'複製', onclick:function(){
-          if(state.entries.length >= MAX_ENTRIES){ toast('登録できるのは最大' + MAX_ENTRIES + '件までです'); return; }
+        el('button', {className:'b icon', text:'↑', title:t('up'), onclick:function(){ move(idx, -1); }}),
+        el('button', {className:'b icon', text:'↓', title:t('down'), onclick:function(){ move(idx, 1); }}),
+        el('button', {className:'b icon', text:t('dup'), onclick:function(){
+          if(state.entries.length >= MAX_ENTRIES){ toast(t('maxToast', MAX_ENTRIES)); return; }
           state.entries.splice(idx+1, 0, {concept:e.concept, charId:e.charId, enabled:e.enabled}); buildList(); sync();
         }}),
-        el('button', {className:'b icon danger', text:'削除', onclick:function(){ state.entries.splice(idx, 1); buildList(); sync(); }})
+        el('button', {className:'b icon danger', text:t('del'), onclick:function(){ state.entries.splice(idx, 1); buildList(); sync(); }})
       ].forEach(function(k){ row.appendChild(k); });
       listBox.appendChild(row);
     });
@@ -575,7 +699,7 @@ function startEditor(){
     return el('div', {className:'field'}, [el('label', {text:label}), pinInputs[key]]);
   }
   var pinCard = el('div', {className:'cell pp-card'}), pinCardKey = '';
-  var pinHandle = el('div', {className:'pp-handle', title:'ドラッグでサイズ変更'});
+  var pinHandle = el('div', {className:'pp-handle', title:t('resize')});
   var pinStage = el('div', {className:'pp-stage'}, [pinCard]);
   var pinBox = el('div', {className:'pp-box'}, [pinStage]);
   function sampleEntry(){
@@ -589,7 +713,7 @@ function startEditor(){
     pinCardKey = key;
     pinCard.innerHTML = '';
     // コンセプトが空でも見え方が分かるよう、見本には例のコンセプトを入れる
-    if(!e.concept) e = {concept:'ハルハル', charId:e.charId};
+    if(!e.concept) e = {concept:t('sampleConcept'), charId:e.charId};
     var cell = makeCell(e);
     toPinCell(cell, e);
     pinCard.classList.add('pinc');
@@ -631,12 +755,12 @@ function startEditor(){
   });
   var pinFields = el('div', {className:'pin-block' + (state.pin.on ? '' : ' disabled')}, [
     el('div', {className:'pin-fields'}, [
-      pinField('横位置 X（px）', 'x'),
-      pinField('縦位置 Y（px）', 'y'),
-      pinField('幅（px）', 'w')
+      pinField(t('pinX'), 'x'),
+      pinField(t('pinY'), 'y'),
+      pinField(t('pinW'), 'w')
     ]),
     pinBox,
-    el('p', {className:'ed-note', text:'枠の中は1920×1080の画面を縮小したものです。カードをドラッグすると移動、右下のつまみをドラッグするとサイズを変えられます。'})
+    el('p', {className:'ed-note', text:t('pinBoxNote')})
   ]);
   refreshPinCard(); paintPin();
   if(window.ResizeObserver) new ResizeObserver(fitPin).observe(pinBox);
@@ -649,72 +773,72 @@ function startEditor(){
     state.bg.alpha = Number(this.value); bgAlphaOut.textContent = state.bg.alpha + '%'; sync();
   }});
   var bgControls = el('div', {className:'bg-controls' + (state.bg.on ? '' : ' disabled')}, [
-    el('div', {className:'bg-row'}, [el('span', {className:'bg-label', text:'色'}), bgPicker]),
-    el('div', {className:'scale-row'}, [el('span', {className:'bg-label', text:'不透明度'}), bgAlpha, bgAlphaOut])
+    el('div', {className:'bg-row'}, [el('span', {className:'bg-label', text:t('color')}), bgPicker]),
+    el('div', {className:'scale-row'}, [el('span', {className:'bg-label', text:t('alpha')}), bgAlpha, bgAlphaOut])
   ]);
   // 上段（共通）：エントリー｜連続回避・あとで編集　下段（OBS用）：オプション｜URL
   var left = el('div', {}, [
-    el('h2', {}, ['コンセプト × キャラ', countEl]),
-    el('p', {className:'ed-note', text:'チェックを外すと抽選から外れます。コンセプトが空の場合はキャラ名だけが表示されます。同じキャラを複製して、コンセプト違いを作ることもできます。'}),
+    el('h2', {}, [t('entriesH'), countEl]),
+    el('p', {className:'ed-note', text:t('entriesNote')}),
     listBox,
-    el('p', {}, [el('button', {className:'b', text:'＋ 追加', onclick:function(){
-      if(state.entries.length >= MAX_ENTRIES){ toast('登録できるのは最大' + MAX_ENTRIES + '件までです'); return; }
+    el('p', {}, [el('button', {className:'b', text:t('add'), onclick:function(){
+      if(state.entries.length >= MAX_ENTRIES){ toast(t('maxToast', MAX_ENTRIES)); return; }
       state.entries.push({concept:'', charId:CHARS[0].id, enabled:true}); buildList(); sync();
     }})])
   ]);
 
   var right = el('div', {className:'side'}, [
-    el('h2', {text:'同じ結果の連続を避ける'}),
+    el('h2', {text:t('noRepH')}),
     el('div', {className:'opts'}, [
       el('div', {className:'opt'}, [
         el('div', {className:'radios'}, [
-          ['しない', 0], ['前回と同じものは出さない', 1], ['全部出るまで同じものは出さない', 2]
+          [t('noRep0'), 0], [t('noRep1'), 1], [t('noRep2'), 2]
         ].map(function(r){
           return el('label', {className:'chk'}, [el('input', {type:'radio', name:'noRepeat', checked:state.noRepeat === r[1], onchange:function(){ state.noRepeat = r[1]; sync(); }}), r[0]]);
         })),
-        el('p', {className:'ed-note', style:'margin-top:12px', text:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。設定を変えたとき、ページやソースを再読み込みしたとき、OBSやブラウザのタブを閉じたときはリセットされます。'})
+        el('p', {className:'ed-note', style:'margin-top:12px', text:t('noRepNote')})
       ])
     ]),
-    el('h2', {text:'設定を保存するには'}),
-    el('p', {className:'ed-note', text:'今のアドレスバーのURLをブックマークしておけば、設定を保存しておけます。設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。'}),
-    // 今の設定を失わないよう、初期設定のページは新しいタブで開く
-    el('button', {className:'b', style:'margin-top:8px', text:'初期設定のページを開く', onclick:function(){ window.open(baseUrl(), '_blank'); }})
+    el('h2', {text:t('saveH')}),
+    el('p', {className:'ed-note', text:t('saveNote')}),
+    // 今の設定を失わないよう、初期設定のページは新しいタブで開く（言語は今のまま）
+    el('button', {className:'b', style:'margin-top:8px', text:t('openDefault'), onclick:function(){ window.open(baseUrl() + '?lang=' + LANG, '_blank'); }})
   ]);
 
   var obsLeft = el('div', {}, [
-    el('h2', {text:'オプション'}),
+    el('h2', {text:t('optH')}),
     el('div', {className:'opts'}, [
       el('div', {className:'opt'}, [
-        el('h3', {text:'カード一覧と結果画面の大きさ'}),
+        el('h3', {text:t('scaleH')}),
         el('div', {className:'scale-row'}, [
           el('input', {type:'range', min:SCALE_MIN, max:SCALE_MAX, step:5, value:state.scale, oninput:function(){
             state.scale = Number(this.value); scaleOut.textContent = state.scale + '%'; sync();
           }}),
           scaleOut
         ]),
-        el('p', {className:'ed-note', text:'カード一覧と結果画面の大きさを、画面いっぱい（100%）を基準に縮小できます。「決定後の表示」のカードの大きさは変わりません。'})
+        el('p', {className:'ed-note', text:t('scaleNote')})
       ]),
       el('div', {className:'opt'}, [
-        el('h3', {text:'背景色'}),
-        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.bg.on, onchange:function(){ state.bg.on = this.checked; bgControls.classList.toggle('disabled', !state.bg.on); sync(); }}), '背景色を付ける']),
+        el('h3', {text:t('bgH')}),
+        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.bg.on, onchange:function(){ state.bg.on = this.checked; bgControls.classList.toggle('disabled', !state.bg.on); sync(); }}), t('bgChk')]),
         bgControls,
-        el('p', {className:'ed-note', text:'チェックを外しているときは背景が透過されます。'})
+        el('p', {className:'ed-note', text:t('bgNote')})
       ]),
       el('div', {className:'opt'}, [
-        el('h3', {text:'決定後の表示'}),
-        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.pin.on, onchange:function(){ state.pin.on = this.checked; pinFields.classList.toggle('disabled', !state.pin.on); sync(); }}), '決定したキャラを指定した位置に表示する']),
-        el('p', {className:'ed-note', text:'結果画面を5秒表示した後、決定したキャラのカードだけを指定した位置に切り替えて表示します。位置は1920×1080の画面の左上を0としています。'}),
+        el('h3', {text:t('pinH')}),
+        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.pin.on, onchange:function(){ state.pin.on = this.checked; pinFields.classList.toggle('disabled', !state.pin.on); sync(); }}), t('pinChk')]),
+        el('p', {className:'ed-note', text:t('pinNote')}),
         pinFields
       ]),
       el('div', {className:'opt'}, [
-        el('h3', {text:'抽選ボタン'}),
-        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.button, onchange:function(){ state.button = this.checked; sync(); }}), '画面に「抽選する」ボタンを表示する']),
-        el('p', {className:'ed-note', text:'ボタンは配信画面にも映ります。映したくない場合はチェックを外してください（ソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押すと抽選できます）。'})
+        el('h3', {text:t('btnH')}),
+        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.button, onchange:function(){ state.button = this.checked; sync(); }}), t('btnChk')]),
+        el('p', {className:'ed-note', text:t('btnNote')})
       ]),
       el('div', {className:'opt'}, [
-        el('h3', {text:'自動で抽選する'}),
-        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.autoStart, onchange:function(){ state.autoStart = this.checked; sync(); }}), '画面が表示されたら自動で抽選する']),
-        el('p', {className:'ed-note', text:'ページを開いたときや、シーンを切り替えたりソースを表示し直したりしたときに、自動で抽選が始まります。'})
+        el('h3', {text:t('autoH')}),
+        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.autoStart, onchange:function(){ state.autoStart = this.checked; sync(); }}), t('autoChk')]),
+        el('p', {className:'ed-note', text:t('autoNote')})
       ])
     ])
   ]);
@@ -733,36 +857,49 @@ function startEditor(){
   ]);
 
   var obsRight = el('div', {className:'side'}, [
-    el('h2', {text:'抽選画面のURL'}),
+    el('h2', {text:t('urlH')}),
     el('div', {className:'urlbox'}, [obsInput,
-      el('button', {className:'b primary', text:'コピー', onclick:function(){ copy(obsInput.value, '抽選画面のURLをコピーしました'); }})])
+      el('button', {className:'b primary', text:t('copy'), onclick:function(){ copy(obsInput.value, t('copied')); }})])
   ]);
 
+  // 言語切替。設定はすべてURLに入っているので、言語を変えたURLで開き直すだけでよい
+  var langSwitch = el('div', {className:'lang-switch', role:'group'}, [['ja', '日本語'], ['en', 'English']].map(function(l){
+    var b = el('button', {type:'button', className:'lang-btn' + (LANG === l[0] ? ' on' : ''), text:l[1], onclick:function(){
+      if(LANG === l[0]) return;
+      state.lang = l[0];
+      location.replace(editUrl(state));
+    }});
+    b.setAttribute('aria-pressed', LANG === l[0] ? 'true' : 'false');
+    b.setAttribute('lang', l[0]);
+    return b;
+  }));
+  langSwitch.setAttribute('aria-label', 'Language');
+
   app.appendChild(el('div', {className:'ed-wrap'}, [
-    el('div', {className:'ed-head'}, [el('h1', {text:'ナイトレイン キャラランダムツール'}), el('span', {text:'次に出撃するキャラを抽選するツール。OBSのブラウザソースとしても使えます'})]),
+    el('div', {className:'ed-head'}, [el('h1', {text:t('heading')}), el('span', {className:'ed-lead', text:t('lead')}), langSwitch]),
     preview,
     el('div', {className:'ed-cols wide-left'}, [left, right]),
     el('div', {className:'howto obs-howto'}, [
-      el('h2', {text:'OBSでの使い方'}),
+      el('h2', {text:t('howtoH')}),
       el('ol', {className:'steps'}, [
-        el('li', {text:'必要に応じて下の「オプション」を設定してから、「抽選画面のURL」の「コピー」を押してください。'}),
-        el('li', {text:'OBSで「ソース」→「ブラウザ」を追加し、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。'}),
-        el('li', {text:'抽選するときは、ソースを右クリック→「対話」を開き、「抽選する」ボタンを押すか、画面をクリックしてからSpaceキーを押してください。「自動で抽選する」にチェックを入れると、シーンを切り替えたりソースを表示し直したりするたびに自動で抽選されます。'})
+        el('li', {text:t('step1')}),
+        el('li', {text:t('step2')}),
+        el('li', {text:t('step3')})
       ]),
-      el('p', {className:'howto-note', text:'※設定を変えるとURLも変わるため、OBS側のURLも貼り直してください。'})
+      el('p', {className:'howto-note', text:t('howtoNote')})
     ]),
     el('div', {className:'ed-cols'}, [obsLeft, obsRight]),
     el('div', {className:'ed-foot'}, [
       el('div', {className:'foot-links'}, [
-        el('span', {className:'foot-label', text:'作成者'}),
-        el('span', {className:'foot-name', text:'えすさん'}),
+        el('span', {className:'foot-label', text:t('author')}),
+        el('span', {className:'foot-name', text:t('authorName')}),
         xLink, ytLink
       ]),
       el('div', {className:'foot-links'}, [
-        el('span', {className:'foot-label', text:'ほかのツール'}),
-        el('a', {className:'foot-link', href:'https://github.com/esusan/nightreign-dict', target:'_blank', rel:'noopener noreferrer', text:'ナイトレイン辞書（わんコメの読み上げ用ユーザー辞書）'})
+        el('span', {className:'foot-label', text:t('others')}),
+        el('a', {className:'foot-link', href:'https://github.com/esusan/nightreign-dict', target:'_blank', rel:'noopener noreferrer', text:t('dictLink')})
       ]),
-      el('p', {text:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'})
+      el('p', {text:t('disclaimer')})
     ])
   ]));
   buildList();
