@@ -662,14 +662,14 @@ function startEditor(){
     el('h2', {text:'オプション'}),
     el('div', {className:'opts'}, [
       el('div', {className:'opt'}, [
-        el('h3', {text:'抽選画面の大きさ'}),
+        el('h3', {text:'カード一覧と結果画面の大きさ'}),
         el('div', {className:'scale-row'}, [
           el('input', {type:'range', min:SCALE_MIN, max:SCALE_MAX, step:5, value:state.scale, oninput:function(){
             state.scale = Number(this.value); scaleOut.textContent = state.scale + '%'; sync();
           }}),
           scaleOut
         ]),
-        el('p', {className:'ed-note', text:'カード一覧と結果画面の大きさを、画面いっぱい（100%）を基準に縮小できます。決定後の表示のカードの大きさは変わりません。'})
+        el('p', {className:'ed-note', text:'カード一覧と結果画面の大きさを、画面いっぱい（100%）を基準に縮小できます。「決定後の表示」のカードの大きさは変わりません。'})
       ]),
       el('div', {className:'opt'}, [
         el('h3', {text:'背景色'}),
@@ -716,7 +716,7 @@ function startEditor(){
   ]);
 
   app.appendChild(el('div', {className:'ed-wrap'}, [
-    el('div', {className:'ed-head'}, [el('h1', {text:'ナイトレイン キャラランダムツール（OBS対応）'}), el('span', {text:'次に出撃するキャラを抽選するツール。OBSのブラウザソースとしても使えます'})]),
+    el('div', {className:'ed-head'}, [el('h1', {text:'ナイトレイン キャラランダムツール'}), el('span', {text:'次に出撃するキャラを抽選するツール。OBSのブラウザソースとしても使えます'})]),
     preview,
     el('div', {className:'ed-cols wide-left'}, [left, right]),
     el('div', {className:'howto obs-howto'}, [
