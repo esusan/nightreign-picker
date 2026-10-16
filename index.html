@@ -27,7 +27,8 @@ html,body{margin:0;height:100%;background:transparent;color:var(--text);
   font-family:var(--font)}
 body.display{overflow:hidden}
 body.instant *{transition:none !important}
-body.display.preview{background:radial-gradient(circle at 50% 30%,#2a2433,#0d0b11 70%)}
+/* OBS以外（編集画面のプレビューやブラウザで直接開いたとき）だけ、配信画面に見立てた背景画像を敷く */
+body.display.preview{background:#0d0b11 url("img/preview-bg.jpg") center/cover no-repeat}
 body.edit{background:#0f0e14;font-size:14px}
 
 /* ---------- 表示 ---------- */
@@ -49,6 +50,7 @@ body.edit{background:#0f0e14;font-size:14px}
 .cell .concept{font-size:calc(var(--cw,160px)*.1);color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cell .cname{font-size:calc(var(--cw,160px)*.12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cell.on{border-color:var(--gold);transform:scale(1.07);box-shadow:0 0 0 2px var(--gold),0 0 27px var(--gold),0 0 54px var(--gold-soft);z-index:2}
+.cell.out{opacity:.65;filter:grayscale(1) brightness(.75)}
 #stage.done .cell{opacity:.22;filter:grayscale(1) brightness(.6)}
 #stage.done .cell.win{opacity:0}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 2px var(--gold),0 0 22px var(--gold),0 0 43px var(--gold-soft)}50%{box-shadow:0 0 0 3px var(--gold),0 0 43px var(--gold),0 0 97px var(--gold-soft)}}
@@ -94,6 +96,8 @@ body.edit{background:#0f0e14;font-size:14px}
 .opt .ed-note:last-child{margin-bottom:0}
 .bg-row{display:flex;align-items:center;gap:12px}
 .bg-row input[type=color]{width:44px;height:30px;padding:0 2px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;cursor:pointer}
+.radios{display:flex;flex-direction:column;gap:6px}
+.radios input[type=radio]{width:16px;height:16px;accent-color:var(--accent);flex:none;margin:0}
 .bg-controls{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .bg-controls.disabled{opacity:.45;pointer-events:none}
 .bg-label{min-width:5em;color:var(--muted);font-size:12.5px}
@@ -102,7 +106,7 @@ body.edit{background:#0f0e14;font-size:14px}
 .scale-out{min-width:3.5em;text-align:right;font-variant-numeric:tabular-nums}
 .pin-block.disabled{opacity:.45;pointer-events:none}
 .pp-box{position:relative;width:100%;aspect-ratio:16/9;margin-top:10px;border:1px solid var(--line);border-radius:8px;overflow:hidden;
-  background:#000 linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px) 0 0/10% 10%,#000 linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px) 0 0/10% 10%}
+  background:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px) 0 0/10% 10%,linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px) 0 0/10% 10%,#000 url("img/pin-preview-bg.jpg") center/cover no-repeat}
 .pp-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform:scale(var(--k,.3));transform-origin:0 0}
 .pp-card{position:absolute;width:var(--cw,160px);aspect-ratio:3/4;background:var(--card-bg);border:2px solid var(--gold);border-radius:calc(var(--cw,160px)*.05);
   overflow:hidden;cursor:move;touch-action:none;user-select:none;box-shadow:0 0 0 2px var(--gold),0 0 22px var(--gold-soft)}
@@ -160,13 +164,13 @@ var MAX_ENTRIES = 30;
 var DURATION_MS = 4000; // 演出の長さは固定
 var CANVAS_W = 1920, CANVAS_H = 1080; // 表示サイズは固定
 var SCALE_MIN = 30, SCALE_MAX = 100;
-var START_DELAY_MS = 2000; // 表示されてから自動抽選を始めるまで
 var PIN_DELAY_MS = 5000; // 結果画面を見せてから指定位置表示に切り替えるまで
 var DEFAULT = {
   autoStart:true,
   scale:70, // 抽選画面（カード一覧と結果）の大きさ（%）
-  bg:{on:true, color:'#000000', alpha:80}, // 抽選画面の背景色と不透明度%（OFFなら透過）
-  pin:{on:false, x:1280, y:850, w:160}, // 決定後に当選カードを置く位置（1920×1080基準・カード左上・幅px）
+  noRepeat:0, // 連続を避ける：0=しない 1=前回と同じものは出さない 2=全部出るまで同じものは出さない
+  bg:{on:true, color:'#000000', alpha:50}, // 抽選画面の背景色と不透明度%（OFFなら透過）
+  pin:{on:false, x:1330, y:890, w:130}, // 決定後に当選カードを置く位置（1920×1080基準・カード左上・幅px）
   entries: CHARS.map(function(c){ return {concept:'', charId:c.id, enabled:true}; })
 };
 
@@ -179,7 +183,7 @@ function bgCss(bg){
 
 // ---------- URLとの相互変換（設定はすべて ?d= に入る） ----------
 function encode(st){
-  var o = {v:1, a:st.autoStart?1:0, z:st.scale, b:st.bg.on ? bgCss(st.bg) : 0, p:st.pin.on ? [st.pin.x, st.pin.y, st.pin.w] : 0,
+  var o = {v:1, a:st.autoStart?1:0, z:st.scale, r:st.noRepeat, b:st.bg.on ? bgCss(st.bg) : 0, p:st.pin.on ? [st.pin.x, st.pin.y, st.pin.w] : 0,
     e:st.entries.map(function(e){ return [e.concept, e.charId, e.enabled?1:0]; })};
   var bytes = new TextEncoder().encode(JSON.stringify(o)), bin = '';
   bytes.forEach(function(b){ bin += String.fromCharCode(b); });
@@ -194,6 +198,7 @@ function decode(str){
     return {
       autoStart: !!o.a,
       scale: Math.min(SCALE_MAX, Math.max(SCALE_MIN, Number(o.z) || DEFAULT.scale)),
+      noRepeat: [0, 1, 2].indexOf(o.r) >= 0 ? o.r : DEFAULT.noRepeat,
       bg: /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(o.b)
         ? {on:true, color:o.b.slice(0,7), alpha:o.b.length === 9 ? Math.round(parseInt(o.b.slice(7), 16) / 255 * 100) : 100}
         // b:0 は明示的にOFF。bが無い古いURLは初期値（ON）
@@ -294,6 +299,28 @@ function startDisplay(){
 
   var running = false, lastDrawAt = 0;
   var timers = [], pinTimer = null, pinEl = null;
+
+  // 連続を避けるための当選履歴。ページを開いている間だけメモリに持つ（非表示→再表示では消えない）
+  var lastWinner = -1, usedWinners = {};
+  // 次の抽選で当たりうるカードの番号
+  function candidates(n){
+    var cand = [];
+    for(var i=0;i<n;i++) cand.push(i);
+    // 2：この巡で出たものを外す（一巡したら全部が対象に戻る）
+    if(state.noRepeat === 2) cand = cand.filter(function(i){ return !usedWinners[i]; });
+    // 1：前回と同じものだけ外す
+    if(state.noRepeat === 1 && cand.length > 1) cand = cand.filter(function(i){ return i !== lastWinner; });
+    return cand;
+  }
+  function recordWinner(i){
+    lastWinner = i; usedWinners[i] = true;
+    if(Object.keys(usedWinners).length >= cells.length) usedWinners = {}; // 一巡したら履歴をリセット
+  }
+  // 次の抽選で当たらないカードをグレーアウトする
+  function paintExcluded(){
+    var cand = candidates(cells.length);
+    cells.forEach(function(c, i){ c.classList.toggle('out', cand.indexOf(i) < 0); });
+  }
   function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
   function unpin(){
     clearTimeout(pinTimer); pinTimer = null;
@@ -308,6 +335,7 @@ function startDisplay(){
     unpin();
     stage.classList.remove('done'); resultEl.classList.remove('show'); veil.classList.remove('show');
     cells.forEach(function(c){ c.classList.remove('win', 'on'); });
+    paintExcluded();
     resultEl.innerHTML = '';
     void document.body.offsetHeight;
     document.body.classList.remove('instant');
@@ -332,18 +360,22 @@ function startDisplay(){
     unpin();
     stage.classList.remove('done'); resultEl.classList.remove('show'); veil.classList.remove('show');
     cells.forEach(function(c){ c.classList.remove('win', 'on'); });
+    paintExcluded();
 
-    var n = cells.length, winner = Math.floor(Math.random()*n);
+    // 光はグレーアウトしていないカードの上だけを走る
+    var cand = candidates(cells.length), n = cand.length;
+    var winner = cand[Math.floor(Math.random()*n)];
+    function randCand(){ return cand[Math.floor(Math.random()*n)]; }
     var dur = DURATION_MS;
     // 最初は速く、終盤にかけて減速。同じマスに連続で止まらない
     var seq = [], t = 0, cur = -1;
     while(t < dur){
       var p = t/dur, next;
-      do { next = Math.floor(Math.random()*n); } while(n > 1 && next === cur);
+      do { next = randCand(); } while(n > 1 && next === cur);
       seq.push([t, next]); cur = next;
       t += 45 + 430*Math.pow(p, 2.4);
     }
-    if(n > 1 && cur === winner){ do { seq[seq.length-1][1] = Math.floor(Math.random()*n); } while(seq[seq.length-1][1] === winner); }
+    if(n > 1 && cur === winner){ do { seq[seq.length-1][1] = randCand(); } while(seq[seq.length-1][1] === winner); }
     seq.push([t + 120, winner]);
 
     var prev = null;
@@ -356,6 +388,7 @@ function startDisplay(){
     });
   }
   function finish(i){
+    recordWinner(i);
     cells[i].classList.remove('on'); cells[i].classList.add('win');
     stage.classList.add('done');
     // 当選カードを複製して中央に大きく出す
@@ -379,11 +412,12 @@ function startDisplay(){
   // 目のアイコンでの表示切替（Visible）とシーン切替（Active）の両方を拾う
   function onObsShow(shown){
     reset();
-    if(shown && state.autoStart) later(draw, START_DELAY_MS);
+    if(shown && state.autoStart) later(draw, 400);
   }
   window.addEventListener('obsSourceActiveChanged', function(ev){ if(ev.detail) onObsShow(ev.detail.active); });
   window.addEventListener('obsSourceVisibleChanged', function(ev){ if(ev.detail) onObsShow(ev.detail.visible); });
-  if(state.autoStart) later(draw, START_DELAY_MS);
+  paintExcluded();
+  if(state.autoStart) later(draw, 700);
 }
 
 // ================= 設定モード =================
@@ -555,8 +589,17 @@ function startEditor(){
       el('div', {className:'opt'}, [
         el('h3', {text:'決定後の表示'}),
         el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.pin.on, onchange:function(){ state.pin.on = this.checked; pinFields.classList.toggle('disabled', !state.pin.on); sync(); }}), '決定したキャラを指定した位置に表示する']),
-        el('p', {className:'ed-note', text:'結果画面を5秒表示したあと、当選カードだけを指定した位置に切り替えて表示します。位置は1920×1080の画面の左上を0として、カードの左上の座標をpxで指定してください。サイズはカードの幅で、高さは幅に合わせて決まります。'}),
+        el('p', {className:'ed-note', text:'結果画面を5秒表示した後、決定したキャラのカードだけを指定した位置に切り替えて表示します。位置は1920×1080の画面の左上を0としています。'}),
         pinFields
+      ]),
+      el('div', {className:'opt'}, [
+        el('h3', {text:'同じ結果の連続を避ける'}),
+        el('div', {className:'radios'}, [
+          ['しない', 0], ['前回と同じものは出さない', 1], ['全部出るまで同じものは出さない', 2]
+        ].map(function(r){
+          return el('label', {className:'chk'}, [el('input', {type:'radio', name:'noRepeat', checked:state.noRepeat === r[1], onchange:function(){ state.noRepeat = r[1]; sync(); }}), r[0]]);
+        })),
+        el('p', {className:'ed-note', text:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。ソースを再読み込みしたときや、URLを貼り直したときはリセットされます。'})
       ]),
       el('div', {className:'opt'}, [
         el('h3', {text:'手動で抽選する'}),
@@ -573,7 +616,7 @@ function startEditor(){
     el('h2', {text:'OBS用URL'}),
     el('div', {className:'urlbox'}, [obsInput, el('button', {className:'b primary', text:'コピー', onclick:function(){ copy(obsInput.value, 'OBS用URLをコピーしました'); }})]),
     el('h2', {text:'あとで編集するには'}),
-    el('p', {className:'ed-note', text:'設定データはこのページのURLの中だけに入っていて、サーバーには何も保存されません。今のアドレスバーのURLをブックマークしておけば、続きから編集できます。'}),
+    el('p', {className:'ed-note', text:'設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。今のアドレスバーのURLをブックマークしておけば、続きから編集できます。'}),
     el('button', {className:'b', text:'編集用URLをコピー', onclick:function(){ copy(editUrl(state), '編集用URLをコピーしました'); }})
   ]);
 
