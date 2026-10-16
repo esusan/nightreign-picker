@@ -673,7 +673,7 @@ function startEditor(){
       ]),
       el('div', {className:'opt'}, [
         el('h3', {text:'背景色'}),
-        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.bg.on, onchange:function(){ state.bg.on = this.checked; bgControls.classList.toggle('disabled', !state.bg.on); sync(); }}), '抽選画面に背景色を付ける']),
+        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.bg.on, onchange:function(){ state.bg.on = this.checked; bgControls.classList.toggle('disabled', !state.bg.on); sync(); }}), '背景色を付ける']),
         bgControls,
         el('p', {className:'ed-note', text:'チェックを外しているときは背景が透過されます。'})
       ]),
