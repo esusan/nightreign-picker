@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夜渡りピッカー</title>
+<title>ナイトレイン キャラランダムツール（OBS対応）</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --gold:#f2c14e;
-  --gold-soft:rgba(242,193,78,.55);
+  --gold:#b9c6ec;
+  --gold-soft:rgba(185,198,236,.55);
   --card-bg:#15131c;
   --card-line:rgba(255,255,255,.14);
   --text:#f3eee2;
@@ -39,16 +39,25 @@ body.edit{background:#0f0e14;font-size:14px}
 #grid{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--gap,12px);
   width:calc(var(--cols,5) * var(--cw,160px) + (var(--cols,5) - 1) * var(--gap,12px))}
 #grid .cell{flex:none}
-.cell{position:relative;width:var(--cw,160px);aspect-ratio:3/4;background:var(--card-bg);border:2px solid var(--card-line);
-  border-radius:calc(var(--cw,160px)*.05);overflow:hidden;box-shadow:0 6px 17px rgba(0,0,0,.6);
+/* ゲームのキャラ選択画面風：細い二重線＋四隅の角飾り。画像は下寄せで上側を暗くし、そこに見出しを置く */
+.cell{--u:calc(var(--cw,160px) / 180);position:relative;width:var(--cw,160px);aspect-ratio:3/4;
+  background:linear-gradient(180deg,#141826,#0a0b12);border:1px solid rgba(185,198,236,.28);overflow:hidden;box-shadow:0 6px 17px rgba(0,0,0,.6);
   transition:opacity .4s,filter .4s,transform .25s}
-.cell .art{position:absolute;inset:0 0 28% 0;background:radial-gradient(circle at 50% 45%,var(--c,#555),#0c0b10 85%);display:flex;align-items:center;justify-content:center}
-.cell .art img{width:78%;height:auto;filter:drop-shadow(0 0 9px rgba(0,0,0,.8))}
-.cell .art .initial{font-size:calc(var(--cw,160px)*.42);color:rgba(255,255,255,.85);text-shadow:0 0 11px rgba(0,0,0,.8)}
-.cell .label{position:absolute;left:0;right:0;bottom:0;height:28%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:linear-gradient(180deg,rgba(10,9,14,.85),#0a090e);border-top:2px solid var(--c,#555);padding:0 4%;text-align:center;line-height:1.15}
-.cell .concept{font-size:calc(var(--cw,160px)*.1);color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.cell .cname{font-size:calc(var(--cw,160px)*.12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cell::before{content:"";position:absolute;inset:calc(var(--u)*5);border:1px solid rgba(185,198,236,.12);pointer-events:none;z-index:2}
+.cell::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;opacity:.8;--k:calc(var(--u)*10);background:
+  linear-gradient(var(--gold),var(--gold)) 0 0/var(--k) 1px no-repeat,linear-gradient(var(--gold),var(--gold)) 0 0/1px var(--k) no-repeat,
+  linear-gradient(var(--gold),var(--gold)) 100% 0/var(--k) 1px no-repeat,linear-gradient(var(--gold),var(--gold)) 100% 0/1px var(--k) no-repeat,
+  linear-gradient(var(--gold),var(--gold)) 0 100%/var(--k) 1px no-repeat,linear-gradient(var(--gold),var(--gold)) 0 100%/1px var(--k) no-repeat,
+  linear-gradient(var(--gold),var(--gold)) 100% 100%/var(--k) 1px no-repeat,linear-gradient(var(--gold),var(--gold)) 100% 100%/1px var(--k) no-repeat}
+.cell .art{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center}
+.cell .art img{display:block;width:100%;height:auto;-webkit-mask:linear-gradient(180deg,transparent,#000 22%);mask:linear-gradient(180deg,transparent,#000 22%)}
+.cell .art .initial{margin:auto;font-size:calc(var(--cw,160px)*.42);color:rgba(255,255,255,.85);text-shadow:0 0 11px rgba(0,0,0,.8)}
+/* 見出し：キャラ名の上に、二つ名のようにコンセプトを小さく添える（無くても行の高さは確保して、キャラ名の位置を揃える） */
+.cell .label{position:absolute;left:0;right:0;top:calc(var(--u)*13);z-index:1;display:flex;flex-direction:column;align-items:center;padding:0 8%;
+  text-align:center;line-height:1.2;text-shadow:0 0 6px #000,0 0 3px #000}
+.cell .ttl{font-size:calc(var(--u)*19);color:#eef1fb;letter-spacing:.12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cell .ttl::after{content:"";display:block;width:60%;height:1px;margin:calc(var(--u)*6) auto 0;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.cell .sub{margin-bottom:calc(var(--u)*2);font-size:calc(var(--u)*13);color:var(--gold);letter-spacing:.15em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cell.on{border-color:var(--gold);transform:scale(1.07);box-shadow:0 0 0 2px var(--gold),0 0 27px var(--gold),0 0 54px var(--gold-soft);z-index:2}
 .cell.out{opacity:.65;filter:grayscale(1) brightness(.75)}
 #stage.done .cell{opacity:.22;filter:grayscale(1) brightness(.6)}
@@ -63,7 +72,7 @@ body.edit{background:#0f0e14;font-size:14px}
 #result .r-text{padding:13px 76px;text-align:center;white-space:nowrap;
   background:linear-gradient(90deg,transparent,rgba(8,7,12,.92) 15%,rgba(8,7,12,.92) 85%,transparent);border-top:1px solid var(--gold-soft);border-bottom:1px solid var(--gold-soft)}
 #result .r-label{font-size:26px;letter-spacing:.4em;color:var(--muted)}
-#result .r-name{font-size:76px;letter-spacing:.12em;color:var(--gold);text-shadow:0 0 22px rgba(242,193,78,.6)}
+#result .r-name{font-size:76px;letter-spacing:.12em;color:var(--gold);text-shadow:0 0 22px rgba(185,198,236,.6)}
 #empty{font-size:32px;color:var(--muted);text-shadow:0 0 6px #000}
 /* 決定後の指定位置表示：結果画面ごとフェードアウトして、当選カードだけを指定位置にフェードイン */
 #stage{transition:opacity .6s}
@@ -72,8 +81,10 @@ body.edit{background:#0f0e14;font-size:14px}
 #veil{z-index:2}
 #result{z-index:3}
 .pin{z-index:4}
-#bg{position:absolute;inset:0;z-index:0;transition:opacity .6s}
-#canvas.pinned #stage,#canvas.pinned #veil,#canvas.pinned #result,#canvas.pinned #bg{opacity:0}
+/* 背景色は1920×1080の枠ではなくウィンドウ全体に敷く（縦横比が違っても余白が出ないように） */
+#bg{position:fixed;inset:0;transition:opacity .6s}
+#bg.off{opacity:0}
+#canvas.pinned #stage,#canvas.pinned #veil,#canvas.pinned #result{opacity:0}
 .pin{position:absolute;opacity:0;transition:opacity .6s;border-color:var(--gold)}
 .pin.show{opacity:1}
 
@@ -241,9 +252,10 @@ function makeCell(e){
     img.onerror = function(){ img.replaceWith(fallback); };
     art.appendChild(img);
   } else art.appendChild(fallback);
+  // コンセプトの有無で情報量が偏らないよう、見出しは常に出す
   var label = el('div', {className:'label'}, [
-    e.concept ? el('div', {className:'concept', text:e.concept}) : null,
-    el('div', {className:'cname', text:c.name})
+    el('div', {className:'sub', text:e.concept || ' '}),
+    el('div', {className:'ttl', text:c.name})
   ]);
   var cell = el('div', {className:'cell'}, [art, label]);
   cell.style.setProperty('--c', c.color);
@@ -265,7 +277,8 @@ function startDisplay(){
   var veil = el('div', {id:'veil'});
   var bgEl = state.bg.on ? el('div', {id:'bg'}) : null;
   if(bgEl) bgEl.style.background = bgCss(state.bg);
-  var canvas = el('div', {id:'canvas'}, [bgEl, stage, veil, resultEl]);
+  var canvas = el('div', {id:'canvas'}, [stage, veil, resultEl]);
+  if(bgEl) app.appendChild(bgEl);
   app.appendChild(canvas);
   var pool = state.entries.filter(function(e){ return e.enabled; });
   var cells = pool.map(function(e){
@@ -325,6 +338,7 @@ function startDisplay(){
   function unpin(){
     clearTimeout(pinTimer); pinTimer = null;
     canvas.classList.remove('pinned');
+    if(bgEl) bgEl.classList.remove('off');
     if(pinEl){ pinEl.remove(); pinEl = null; }
   }
   // 抽選前の状態に戻す（途中の演出も止める）。アニメーションなしで即座に切り替える
@@ -350,6 +364,7 @@ function startDisplay(){
     pinEl.style.top = p.y + 'px';
     canvas.appendChild(pinEl);
     canvas.classList.add('pinned');
+    if(bgEl) bgEl.classList.add('off');
     void pinEl.offsetHeight;
     pinEl.classList.add('show');
   }
@@ -621,7 +636,7 @@ function startEditor(){
   ]);
 
   app.appendChild(el('div', {className:'ed-wrap'}, [
-    el('div', {className:'ed-head'}, [el('h1', {text:'夜渡りピッカー'}), el('span', {text:'次に出撃するキャラを抽選する、OBS用ブラウザソース'})]),
+    el('div', {className:'ed-head'}, [el('h1', {text:'ナイトレイン キャラランダムツール（OBS対応）'}), el('span', {text:'次に出撃するキャラを抽選する、OBS用ブラウザソース'})]),
     el('div', {className:'howto'}, [
       el('h2', {text:'使い方'}),
       el('ol', {className:'steps'}, [
