@@ -33,18 +33,18 @@ body.edit{background:#0f0e14;font-size:14px}
 
 /* ---------- 表示 ---------- */
 /* 1920×1080で固定レイアウトし、ウィンドウに合わせて拡大縮小する */
-#canvas{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--k,1));overflow:hidden}
+#canvas{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--k,1))}
 #stage{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;user-select:none}
 /* 最終行が埋まらないときも中央に寄せるため、gridではなく幅固定のflex折り返しで並べる */
 #grid{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--gap,12px);
   width:calc(var(--cols,5) * var(--cw,160px) + (var(--cols,5) - 1) * var(--gap,12px))}
 #grid .cell{flex:none}
-/* ゲームのキャラ選択画面風：細い二重線＋四隅の角飾り。画像は下寄せで上側を暗くし、そこに見出しを置く */
+/* ゲームのキャラ選択画面風：細い二重線＋四隅の角飾り（控えめ）。画像は下寄せで上側を暗くし、そこに見出しを置く */
 .cell{--u:calc(var(--cw,160px) / 180);position:relative;width:var(--cw,160px);aspect-ratio:3/4;
   background:linear-gradient(180deg,#141826,#0a0b12);border:1px solid rgba(185,198,236,.28);overflow:hidden;box-shadow:0 6px 17px rgba(0,0,0,.6);
   transition:opacity .4s,filter .4s,transform .25s}
 .cell::before{content:"";position:absolute;inset:calc(var(--u)*5);border:1px solid rgba(185,198,236,.12);pointer-events:none;z-index:2}
-.cell::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;opacity:.8;--k:calc(var(--u)*10);background:
+.cell::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;opacity:.35;--k:calc(var(--u)*10);background:
   linear-gradient(var(--gold),var(--gold)) 0 0/var(--k) 1px no-repeat,linear-gradient(var(--gold),var(--gold)) 0 0/1px var(--k) no-repeat,
   linear-gradient(var(--gold),var(--gold)) 100% 0/var(--k) 1px no-repeat,linear-gradient(var(--gold),var(--gold)) 100% 0/1px var(--k) no-repeat,
   linear-gradient(var(--gold),var(--gold)) 0 100%/var(--k) 1px no-repeat,linear-gradient(var(--gold),var(--gold)) 0 100%/1px var(--k) no-repeat,
@@ -56,22 +56,38 @@ body.edit{background:#0f0e14;font-size:14px}
 .cell .label{position:absolute;left:0;right:0;top:calc(var(--u)*13);z-index:1;display:flex;flex-direction:column;align-items:center;padding:0 8%;
   text-align:center;line-height:1.2;text-shadow:0 0 6px #000,0 0 3px #000}
 .cell .ttl{font-size:calc(var(--u)*19);color:#eef1fb;letter-spacing:.12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.cell .ttl::after{content:"";display:block;width:60%;height:1px;margin:calc(var(--u)*6) auto 0;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+/* キャラ名の下の線。文字幅ではなくカード幅基準にする（.ttlはoverflow:hiddenなので.label側に付ける） */
+.cell .label::after{content:"";display:block;width:75%;height:1px;margin-top:calc(var(--u)*7);background:linear-gradient(90deg,transparent,var(--gold) 30%,var(--gold) 70%,transparent)}
 .cell .sub{margin-bottom:calc(var(--u)*2);font-size:calc(var(--u)*13);color:var(--gold);letter-spacing:.15em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cell.on{border-color:var(--gold);transform:scale(1.07);box-shadow:0 0 0 2px var(--gold),0 0 27px var(--gold),0 0 54px var(--gold-soft);z-index:2}
 .cell.out{opacity:.65;filter:grayscale(1) brightness(.75)}
 #stage.done .cell{opacity:.22;filter:grayscale(1) brightness(.6)}
 #stage.done .cell.win{opacity:0}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 2px var(--gold),0 0 22px var(--gold),0 0 43px var(--gold-soft)}50%{box-shadow:0 0 0 3px var(--gold),0 0 43px var(--gold),0 0 97px var(--gold-soft)}}
-#veil{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(0,0,0,.35),rgba(0,0,0,.8));opacity:0;transition:opacity .5s;pointer-events:none}
+/* 結果画面の暗幕は1920×1080の枠をはみ出してウィンドウ全体を覆う（カード一覧との重なり順を保つため枠の中に置いたまま広げる） */
+#veil{position:absolute;inset:-300vmax;background:radial-gradient(circle 1101px at 50% 50%,rgba(0,0,0,.35),rgba(0,0,0,.8));opacity:0;transition:opacity .5s;pointer-events:none}
 #veil.show{opacity:1}
 #result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(calc(.85 * var(--rs,1)));opacity:0;pointer-events:none;transition:opacity .5s,transform .5s cubic-bezier(.2,1.4,.4,1);
-  display:flex;flex-direction:column;align-items:center;gap:24px}
+  display:flex;flex-direction:column;align-items:center;gap:56px}
 #result.show{opacity:1;transform:translate(-50%,-50%) scale(var(--rs,1))}
 #result .cell{transform:none;animation:pulse 1.4s ease-in-out infinite;border-color:var(--gold)}
+/* 結果画面は下に名前が出るので、カード上の見出しは出さない */
+#result .cell .label{display:none}
+/* 「抽選する」ボタン（一覧側は抽選画面の大きさに合わせて縮める。結果側は結果ごと縮むので等倍） */
+.draw-btn{--b:var(--bs,1);flex:none;margin-top:calc(80px * var(--b));padding:calc(20px * var(--b)) calc(96px * var(--b));font:inherit;font-size:calc(44px * var(--b));
+  letter-spacing:.2em;color:#eef1fb;background:rgba(14,16,26,.85);border:1px solid var(--gold);cursor:pointer;
+  box-shadow:0 0 calc(18px * var(--b)) var(--gold-soft);transition:opacity .3s,background .2s,box-shadow .2s}
+.draw-btn:hover{background:rgba(40,46,70,.9);box-shadow:0 0 calc(30px * var(--b)) var(--gold-soft)}
+#result .draw-btn{--b:1;margin-top:0;pointer-events:none}
+#result.show .draw-btn{pointer-events:auto}
+#stage.running .draw-btn,#stage.done .draw-btn{opacity:0;pointer-events:none}
+#canvas.pinned .draw-btn{pointer-events:none}
+#result .r-concept{margin-right:.3em}
+#result .cell{aspect-ratio:1/1}
+#result .cell .art img{-webkit-mask:none;mask:none}
 #result .r-text{padding:13px 76px;text-align:center;white-space:nowrap;
   background:linear-gradient(90deg,transparent,rgba(8,7,12,.92) 15%,rgba(8,7,12,.92) 85%,transparent);border-top:1px solid var(--gold-soft);border-bottom:1px solid var(--gold-soft)}
-#result .r-label{font-size:26px;letter-spacing:.4em;color:var(--muted)}
+#result .r-label{font-size:26px;letter-spacing:.15em;color:var(--muted)}
 #result .r-name{font-size:76px;letter-spacing:.12em;color:var(--gold);text-shadow:0 0 22px rgba(185,198,236,.6)}
 #empty{font-size:32px;color:var(--muted);text-shadow:0 0 6px #000}
 /* 決定後の指定位置表示：結果画面ごとフェードアウトして、当選カードだけを指定位置にフェードイン */
@@ -94,7 +110,8 @@ body.edit{background:#0f0e14;font-size:14px}
 .ed-head h1{font-size:22px;margin:0;color:var(--gold);font-weight:700;letter-spacing:.1em}
 .ed-head span{color:var(--muted);font-size:13px}
 .ed-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
-@media (max-width:860px){.ed-cols{grid-template-columns:1fr}}
+.ed-cols.wide-left{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}
+@media (max-width:860px){.ed-cols,.ed-cols.wide-left{grid-template-columns:1fr}}
 .ed-wrap h2{font-size:16px;margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);color:var(--accent);font-weight:700}
 .ed-note{color:var(--muted);font-size:12.5px;margin:4px 0 10px;line-height:1.7}
 .field{display:flex;flex-direction:column;gap:4px}
@@ -141,10 +158,12 @@ button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 .urlbox{display:flex;gap:6px}
 .urlbox input{font-family:Consolas,monospace;font-size:12px}
 .side{position:sticky;top:12px}
+.preview-top{margin-top:14px}
+.ed-section{margin:44px 0 0;padding:10px 14px;font-size:17px;font-weight:700;letter-spacing:.08em;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px}
 .frame{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000}
 .frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .howto{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 16px 12px;margin:14px 0 4px}
-.howto h2{margin:0 0 6px;padding:0;border:0;font-size:20px}
+.howto h2{margin:8px 0 14px;padding:0;border:0;font-size:20px}
 .steps{margin:0;padding-left:24px;color:var(--muted);font-size:15.5px;line-height:1.8}
 .howto-note{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.7}
 #toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--accent);color:#1a1408;padding:8px 16px;border-radius:6px;z-index:40;opacity:0;transition:opacity .3s;pointer-events:none;font-weight:700}
@@ -177,7 +196,8 @@ var CANVAS_W = 1920, CANVAS_H = 1080; // 表示サイズは固定
 var SCALE_MIN = 30, SCALE_MAX = 100;
 var PIN_DELAY_MS = 5000; // 結果画面を見せてから指定位置表示に切り替えるまで
 var DEFAULT = {
-  autoStart:true,
+  autoStart:false, // ブラウザで使うのが基本なので手動抽選が初期値（OBSでシーン切替に合わせたいときにON）
+  button:true, // 画面に「抽選する」ボタンを出す
   scale:70, // 抽選画面（カード一覧と結果）の大きさ（%）
   noRepeat:0, // 連続を避ける：0=しない 1=前回と同じものは出さない 2=全部出るまで同じものは出さない
   bg:{on:true, color:'#000000', alpha:50}, // 抽選画面の背景色と不透明度%（OFFなら透過）
@@ -194,7 +214,7 @@ function bgCss(bg){
 
 // ---------- URLとの相互変換（設定はすべて ?d= に入る） ----------
 function encode(st){
-  var o = {v:1, a:st.autoStart?1:0, z:st.scale, r:st.noRepeat, b:st.bg.on ? bgCss(st.bg) : 0, p:st.pin.on ? [st.pin.x, st.pin.y, st.pin.w] : 0,
+  var o = {v:1, a:st.autoStart?1:0, k:st.button?1:0, z:st.scale, r:st.noRepeat, b:st.bg.on ? bgCss(st.bg) : 0, p:st.pin.on ? [st.pin.x, st.pin.y, st.pin.w] : 0,
     e:st.entries.map(function(e){ return [e.concept, e.charId, e.enabled?1:0]; })};
   var bytes = new TextEncoder().encode(JSON.stringify(o)), bin = '';
   bytes.forEach(function(b){ bin += String.fromCharCode(b); });
@@ -208,6 +228,7 @@ function decode(str){
     var o = JSON.parse(new TextDecoder().decode(bytes));
     return {
       autoStart: !!o.a,
+      button: o.k === undefined ? DEFAULT.button : !!o.k, // kが無い古いURLは初期値（ON）
       scale: Math.min(SCALE_MAX, Math.max(SCALE_MIN, Number(o.z) || DEFAULT.scale)),
       noRepeat: [0, 1, 2].indexOf(o.r) >= 0 ? o.r : DEFAULT.noRepeat,
       bg: /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(o.b)
@@ -271,7 +292,11 @@ function startDisplay(){
   var app = document.getElementById('app');
   var grid = el('div', {id:'grid'});
   var empty = el('div', {id:'empty', text:'抽選対象のエントリーがありません', hidden:true});
-  var stage = el('div', {id:'stage'}, [grid, empty]);
+  // 「抽選する」ボタン。一覧の下と結果画面の下に1つずつ置き、状態に応じてどちらかだけ見せる
+  function drawButton(text){ return state.button ? el('button', {className:'draw-btn', text:text, onclick:function(ev){ this.blur(); draw(); }}) : null; }
+  // 自動抽選のときは表示と同時に抽選が始まるので、一覧側のボタンは出さない（結果画面の「もう一度」は出す）
+  var stageBtn = state.autoStart ? null : drawButton('抽選する');
+  var stage = el('div', {id:'stage'}, [grid, empty, stageBtn]);
   var rName = el('div', {className:'r-name'});
   var resultEl = el('div', {id:'result'});
   var veil = el('div', {id:'veil'});
@@ -293,7 +318,8 @@ function startDisplay(){
     var n = cells.length; if(!n) return;
     var s = state.scale / 100;
     var W = CANVAS_W * 0.94 * s, H = CANVAS_H * 0.9 * s;
-    var gap = Math.max(6, Math.min(W, H) * 0.018), best = 0, bestCols = 1;
+    if(stageBtn) H -= 200 * s; // ボタンの分だけ一覧の高さを空ける
+    var gap = Math.max(6, Math.min(W, H) * 0.06), best = 0, bestCols = 1;
     for(var cols=1; cols<=n; cols++){
       var rows = Math.ceil(n/cols);
       var w = Math.min((W - gap*(cols-1))/cols, ((H - gap*(rows-1))/rows) * 0.75);
@@ -305,6 +331,7 @@ function startDisplay(){
   }
   layout();
   resultEl.style.setProperty('--rs', state.scale / 100);
+  stage.style.setProperty('--bs', state.scale / 100);
   // ウィンドウが1920×1080でなくても、縦横比を保ったまま収める
   function fit(){ canvas.style.setProperty('--k', Math.min(window.innerWidth / CANVAS_W, window.innerHeight / CANVAS_H)); }
   fit();
@@ -345,6 +372,7 @@ function startDisplay(){
   function reset(){
     timers.forEach(clearTimeout); timers = [];
     running = false; lastDrawAt = 0;
+    stage.classList.remove('running');
     document.body.classList.add('instant');
     unpin();
     stage.classList.remove('done'); resultEl.classList.remove('show'); veil.classList.remove('show');
@@ -372,6 +400,7 @@ function startDisplay(){
     var now = Date.now();
     if(running || !cells.length || now - lastDrawAt < 800) return;
     running = true; lastDrawAt = now;
+    stage.classList.add('running');
     unpin();
     stage.classList.remove('done'); resultEl.classList.remove('show'); veil.classList.remove('show');
     cells.forEach(function(c){ c.classList.remove('win', 'on'); });
@@ -410,18 +439,24 @@ function startDisplay(){
     var big = cells[i].cloneNode(true);
     big.classList.remove('win', 'on');
     big.style.setProperty('--cw', Math.floor(Math.min(CANVAS_H * 0.5 * 0.75, CANVAS_W * 0.3)) + 'px');
-    rName.textContent = (pool[i].concept || '') + charOf(pool[i]).name;
+    rName.innerHTML = '';
+    if(pool[i].concept) rName.appendChild(el('span', {className:'r-concept', text:pool[i].concept}));
+    rName.appendChild(document.createTextNode(charOf(pool[i]).name));
     resultEl.innerHTML = '';
     resultEl.appendChild(big);
     resultEl.appendChild(el('div', {className:'r-text'}, [el('div', {className:'r-label', text:'次の出撃'}), rName]));
+    var againBtn = drawButton('もう一度抽選する');
+    if(againBtn) resultEl.appendChild(againBtn);
     veil.classList.add('show');
     resultEl.classList.add('show');
     running = false;
+    stage.classList.remove('running');
     if(state.pin.on) pinTimer = setTimeout(function(){ pinWinner(i); }, PIN_DELAY_MS);
   }
 
   document.addEventListener('keydown', function(ev){
-    if(ev.code === 'Space' || ev.code === 'Enter'){ ev.preventDefault(); draw(); }
+    // OBSの「対話」から送られるキー入力は ev.code が空のことがあるので、key / keyCode でも判定する
+    if(ev.code === 'Space' || ev.code === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar' || ev.key === 'Enter' || ev.keyCode === 32 || ev.keyCode === 13){ ev.preventDefault(); draw(); }
   });
   // OBSで非表示になったら抽選前の状態に戻し、表示されたら（自動抽選ONなら）抽選する。
   // 目のアイコンでの表示切替（Visible）とシーン切替（Active）の両方を拾う
@@ -473,7 +508,7 @@ function startEditor(){
       [
         el('input', {type:'checkbox', checked:e.enabled, title:'抽選対象にする', onchange:function(){ e.enabled = this.checked; row.classList.toggle('off', !e.enabled); sync(); }}),
         ico,
-        el('input', {type:'text', className:'grow', value:e.concept, maxLength:16, placeholder:'コンセプト（例：ガーカン）', oninput:function(){ e.concept = this.value; sync(); }}),
+        el('input', {type:'text', className:'grow', value:e.concept, maxLength:16, placeholder:'コンセプト（例：ハルハル）', oninput:function(){ e.concept = this.value; sync(); }}),
         sel,
         el('button', {className:'b icon', text:'↑', title:'上へ', onclick:function(){ move(idx, -1); }}),
         el('button', {className:'b icon', text:'↓', title:'下へ', onclick:function(){ move(idx, 1); }}),
@@ -575,6 +610,7 @@ function startEditor(){
     el('div', {className:'bg-row'}, [el('span', {className:'bg-label', text:'色'}), bgPicker]),
     el('div', {className:'scale-row'}, [el('span', {className:'bg-label', text:'不透明度'}), bgAlpha, bgAlphaOut])
   ]);
+  // 上段（共通）：エントリー｜連続回避・あとで編集　下段（OBS用）：オプション｜URL
   var left = el('div', {}, [
     el('h2', {}, ['エントリー（コンセプト × キャラ）', countEl]),
     el('p', {className:'ed-note', text:'チェックを外すと抽選から外れます。コンセプトが空の場合はキャラ名だけが表示されます。同じキャラを複製して、コンセプト違いのエントリーを作ることもできます。'}),
@@ -582,7 +618,26 @@ function startEditor(){
     el('p', {}, [el('button', {className:'b', text:'＋ エントリーを追加', onclick:function(){
       if(state.entries.length >= MAX_ENTRIES){ toast('登録できるのは最大' + MAX_ENTRIES + '件までです'); return; }
       state.entries.push({concept:'', charId:CHARS[0].id, enabled:true}); buildList(); sync();
-    }})]),
+    }})])
+  ]);
+
+  var right = el('div', {className:'side'}, [
+    el('h2', {text:'同じ結果の連続を避ける'}),
+    el('div', {className:'opts'}, [
+      el('div', {className:'opt'}, [
+        el('div', {className:'radios'}, [
+          ['しない', 0], ['前回と同じものは出さない', 1], ['全部出るまで同じものは出さない', 2]
+        ].map(function(r){
+          return el('label', {className:'chk'}, [el('input', {type:'radio', name:'noRepeat', checked:state.noRepeat === r[1], onchange:function(){ state.noRepeat = r[1]; sync(); }}), r[0]]);
+        })),
+        el('p', {className:'ed-note', style:'margin-top:12px', text:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。ページやソースを再読み込みしたときや、URLを貼り直したときはリセットされます。'})
+      ])
+    ]),
+    el('h2', {text:'設定を保存するには'}),
+    el('p', {className:'ed-note', text:'設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。今のアドレスバーのURLをブックマークしておけば、続きから編集できます。'})
+  ]);
+
+  var obsLeft = el('div', {}, [
     el('h2', {text:'オプション'}),
     el('div', {className:'opts'}, [
       el('div', {className:'opt'}, [
@@ -608,45 +663,44 @@ function startEditor(){
         pinFields
       ]),
       el('div', {className:'opt'}, [
-        el('h3', {text:'同じ結果の連続を避ける'}),
-        el('div', {className:'radios'}, [
-          ['しない', 0], ['前回と同じものは出さない', 1], ['全部出るまで同じものは出さない', 2]
-        ].map(function(r){
-          return el('label', {className:'chk'}, [el('input', {type:'radio', name:'noRepeat', checked:state.noRepeat === r[1], onchange:function(){ state.noRepeat = r[1]; sync(); }}), r[0]]);
-        })),
-        el('p', {className:'ed-note', text:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。ソースを再読み込みしたときや、URLを貼り直したときはリセットされます。'})
+        el('h3', {text:'抽選ボタン'}),
+        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.button, onchange:function(){ state.button = this.checked; sync(); }}), '画面に「抽選する」ボタンを表示する']),
+        el('p', {className:'ed-note', text:'自動で抽選する設定のときは、結果画面の「もう一度抽選する」ボタンだけが表示されます。OBSでは、ソースを右クリック→「対話」を開くとボタンを押せます。ボタンは配信画面にも映るので、映したくない場合はチェックを外してください（Spaceキーでも抽選できます）。'})
       ]),
       el('div', {className:'opt'}, [
-        el('h3', {text:'手動で抽選する'}),
-        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:!state.autoStart, onchange:function(){ state.autoStart = !this.checked; sync(); }}), '手動で抽選する']),
-        el('p', {className:'ed-note', text:'チェックを入れると、表示されても自動では抽選されなくなります。抽選するときは、OBSでソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押してください。抽選し直すときも同じ操作です。'})
+        el('h3', {text:'自動で抽選する'}),
+        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.autoStart, onchange:function(){ state.autoStart = this.checked; sync(); }}), '画面が表示されたら自動で抽選する']),
+        el('p', {className:'ed-note', text:'チェックを入れると、ページを開いたときや、OBSでシーンを切り替えたりソースを表示し直したりしたときに、自動で抽選が始まります。OBSで手動で抽選するときは、ソースを右クリック→「対話」を開き、ボタンを押すか、画面をクリックしてからSpaceキーを押してください。'})
       ])
     ])
   ]);
 
-  var right = el('div', {className:'side'}, [
-    el('h2', {text:'プレビュー'}),
-    el('div', {className:'frame'}, [frame]),
-    el('p', {className:'ed-note', text:'プレビューをクリックしてからSpaceキーを押すと、抽選を試せます。'}),
-    el('h2', {text:'OBS用URL'}),
-    el('div', {className:'urlbox'}, [obsInput, el('button', {className:'b primary', text:'コピー', onclick:function(){ copy(obsInput.value, 'OBS用URLをコピーしました'); }})]),
-    el('h2', {text:'あとで編集するには'}),
-    el('p', {className:'ed-note', text:'設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。今のアドレスバーのURLをブックマークしておけば、続きから編集できます。'}),
-    el('button', {className:'b', text:'編集用URLをコピー', onclick:function(){ copy(editUrl(state), '編集用URLをコピーしました'); }})
+  // プレビューはページ上部に1カラムで置く
+  var preview = el('div', {className:'preview-top'}, [
+    el('div', {className:'frame'}, [frame])
+  ]);
+
+  var obsRight = el('div', {className:'side'}, [
+    el('h2', {text:'抽選画面のURL'}),
+    el('div', {className:'urlbox'}, [obsInput,
+      el('button', {className:'b primary', text:'コピー', onclick:function(){ copy(obsInput.value, '抽選画面のURLをコピーしました'); }})])
   ]);
 
   app.appendChild(el('div', {className:'ed-wrap'}, [
-    el('div', {className:'ed-head'}, [el('h1', {text:'ナイトレイン キャラランダムツール（OBS対応）'}), el('span', {text:'次に出撃するキャラを抽選する、OBS用ブラウザソース'})]),
+    el('div', {className:'ed-head'}, [el('h1', {text:'ナイトレイン キャラランダムツール（OBS対応）'}), el('span', {text:'次に出撃するキャラを抽選するツール。OBSのブラウザソースとしても使えます'})]),
+    preview,
+    el('div', {className:'ed-cols wide-left'}, [left, right]),
+    el('div', {className:'ed-section', text:'OBS用の設定'}),
     el('div', {className:'howto'}, [
-      el('h2', {text:'使い方'}),
+      el('h2', {text:'OBSでの使い方'}),
       el('ol', {className:'steps'}, [
-        el('li', {text:'「エントリー」に、抽選したいコンセプトとキャラを登録してください。チェックを外したエントリーは抽選に入りません。'}),
-        el('li', {text:'「OBS用URL」の「コピー」を押し、OBSで「ソース」→「ブラウザ」を追加して、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。'}),
-        el('li', {text:'このソースが表示されると、自動で抽選が始まります。シーンを切り替えたり、ソースを表示し直したりするたびに抽選されます。'})
+        el('li', {text:'必要に応じて下の「オプション」を設定してから、「抽選画面のURL」の「コピー」を押してください。'}),
+        el('li', {text:'OBSで「ソース」→「ブラウザ」を追加し、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。'}),
+        el('li', {text:'抽選するときは、ソースを右クリック→「対話」を開き、「抽選する」ボタンを押すか、画面をクリックしてからSpaceキーを押してください。「自動で抽選する」にチェックを入れると、シーンを切り替えたりソースを表示し直したりするたびに自動で抽選されます。'})
       ]),
       el('p', {className:'howto-note', text:'※設定を変えるとURLも変わるため、OBS側のURLも貼り直してください。'})
     ]),
-    el('div', {className:'ed-cols'}, [left, right])
+    el('div', {className:'ed-cols'}, [obsLeft, obsRight])
   ]));
   buildList();
   sync();
