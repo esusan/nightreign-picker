@@ -64,12 +64,12 @@ body.edit{background:#0f0e14;font-size:14px}
 .cell .art img{display:block;width:100%;height:auto;-webkit-mask:linear-gradient(180deg,transparent,#000 22%);mask:linear-gradient(180deg,transparent,#000 22%)}
 .cell .art .initial{margin:auto;font-size:calc(var(--cw,160px)*.42);color:rgba(255,255,255,.85);text-shadow:0 0 11px rgba(0,0,0,.8)}
 /* 見出し：キャラ名の上に、二つ名のようにコンセプトを小さく添える（無くても行の高さは確保して、キャラ名の位置を揃える） */
-.cell .label{position:absolute;left:0;right:0;top:calc(var(--u)*13);z-index:1;display:flex;flex-direction:column;align-items:center;padding:0 8%;
+.cell .label{position:absolute;left:0;right:0;top:calc(var(--u)*13);z-index:1;display:flex;flex-direction:column;align-items:center;padding:0 4%;
   text-align:center;line-height:1.2;text-shadow:0 0 6px #000,0 0 3px #000}
 .cell .ttl{font-size:calc(var(--u)*19);color:#eef1fb;letter-spacing:.12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 /* キャラ名の下の線。文字幅ではなくカード幅基準にする（.ttlはoverflow:hiddenなので.label側に付ける） */
 .cell .label::after{content:"";display:block;width:75%;height:1px;margin-top:calc(var(--u)*7);background:linear-gradient(90deg,transparent,var(--gold) 30%,var(--gold) 70%,transparent)}
-.cell .sub{margin-bottom:calc(var(--u)*2);font-size:calc(var(--u)*13);color:var(--gold);letter-spacing:.15em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cell .sub{margin-bottom:calc(var(--u)*2);font-size:calc(var(--u)*17);color:var(--gold);letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cell.on{border-color:var(--gold);transform:scale(1.07);box-shadow:0 0 0 2px var(--gold),0 0 27px var(--gold),0 0 54px var(--gold-soft);z-index:2}
 .cell.out{opacity:.65;filter:grayscale(1) brightness(.75)}
 #stage.done .cell{opacity:0}
@@ -110,6 +110,12 @@ body.edit{background:#0f0e14;font-size:14px}
 #canvas.pinned #stage,#canvas.pinned #result{opacity:0}
 .pin{position:absolute;opacity:0;transition:opacity .6s;border-color:rgba(185,198,236,.18)}
 .pin.show{opacity:1}
+/* 決定後の表示：上の見出しの段を削って正方形にし、コンセプトだけを画像の上部に重ねる（文字の後ろは上から暗くするグラデーション） */
+.cell.pinc{aspect-ratio:1/1}
+.cell.pinc .art img{-webkit-mask:none;mask:none}
+.cell.pinc .label{top:0;padding:calc(var(--u)*10) 6% calc(var(--u)*30);background:linear-gradient(0deg,transparent,rgba(8,7,12,.6) 40%,rgba(8,7,12,.88))}
+.cell.pinc .label::after{display:none}
+.cell.pinc .ttl{font-size:calc(var(--u)*24)}
 
 /* ---------- 設定 ---------- */
 .ed-wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px}
@@ -222,7 +228,7 @@ var DEFAULT = {
   scale:95, // 抽選画面（カード一覧と結果）の大きさ（%）
   noRepeat:0, // 連続を避ける：0=しない 1=前回と同じものは出さない 2=全部出るまで同じものは出さない
   bg:{on:true, color:'#000000', alpha:80}, // 抽選画面の背景色と不透明度%（OFFなら透過）
-  pin:{on:false, x:1070, y:880, w:140}, // 決定後に当選カードを置く位置（1920×1080基準・カード左上・幅px）
+  pin:{on:false, x:1050, y:840, w:160}, // 決定後に当選カードを置く位置（1920×1080基準・カード左上・幅px）
   entries: CHARS.map(function(c){ return {concept:'', charId:c.id, enabled:true}; })
 };
 
@@ -303,6 +309,17 @@ function makeCell(e){
   cell.style.setProperty('--c', c.color);
   return cell;
 }
+// 決定後の表示用に見出しを整理する（小さいのでキャラ名は出さず、コンセプトだけをキャラ名の位置に大きめに。無ければ見出しの段ごと削って正方形にする）
+function toPinCell(cell, e){
+  var label = cell.querySelector('.label');
+  if(e.concept){
+    label.querySelector('.sub').remove();
+    label.querySelector('.ttl').textContent = e.concept;
+  } else if(label) label.remove();
+  cell.classList.add('pinc');
+}
+// 上の段を削って正方形にするので、下端の位置が変わらないよう削った分だけ下げる
+function pinTop(e, p){ return p.y + Math.round(p.w / 3); }
 
 if(isEdit) startEditor(); else startDisplay();
 
@@ -407,9 +424,10 @@ function startDisplay(){
     var p = state.pin;
     pinEl = cells[i].cloneNode(true);
     pinEl.className = 'cell pin';
+    toPinCell(pinEl, pool[i]);
     pinEl.style.setProperty('--cw', Math.max(20, p.w) + 'px');
     pinEl.style.left = p.x + 'px';
-    pinEl.style.top = p.y + 'px';
+    pinEl.style.top = pinTop(pool[i], p) + 'px';
     canvas.appendChild(pinEl);
     canvas.classList.add('pinned');
     if(bgEl) bgEl.classList.add('off');
@@ -570,14 +588,19 @@ function startEditor(){
     if(key === pinCardKey) return;
     pinCardKey = key;
     pinCard.innerHTML = '';
+    // コンセプトが空でも見え方が分かるよう、見本には例のコンセプトを入れる
+    if(!e.concept) e = {concept:'ハルハル', charId:e.charId};
     var cell = makeCell(e);
+    toPinCell(cell, e);
+    pinCard.classList.add('pinc');
     while(cell.firstChild) pinCard.appendChild(cell.firstChild);
     pinCard.style.setProperty('--c', cell.style.getPropertyValue('--c'));
     pinCard.appendChild(pinHandle);
+    paintPin(); // コンセプトの有無で高さが変わるので位置も塗り直す
   }
   function paintPin(){
     pinCard.style.left = state.pin.x + 'px';
-    pinCard.style.top = state.pin.y + 'px';
+    pinCard.style.top = pinTop(sampleEntry(), state.pin) + 'px';
     pinCard.style.setProperty('--cw', state.pin.w + 'px');
   }
   function fitPin(){ pinStage.style.setProperty('--k', pinBox.clientWidth / CANVAS_W); }
