@@ -75,9 +75,6 @@ body.edit{background:#0f0e14;font-size:14px}
 #stage.done .cell{opacity:0}
 #stage.done .cell.win{opacity:0}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 2px var(--gold),0 0 22px var(--gold),0 0 43px var(--gold-soft)}50%{box-shadow:0 0 0 3px var(--gold),0 0 43px var(--gold),0 0 97px var(--gold-soft)}}
-/* 結果画面の暗幕は1920×1080の枠をはみ出してウィンドウ全体を覆う（カード一覧との重なり順を保つため枠の中に置いたまま広げる） */
-#veil{position:absolute;inset:-300vmax;background:radial-gradient(circle 1101px at 50% 50%,rgba(0,0,0,.35),rgba(0,0,0,.8));opacity:0;transition:opacity .5s;pointer-events:none}
-#veil.show{opacity:1}
 #result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(calc(.85 * var(--rs,1)));opacity:0;pointer-events:none;transition:opacity .5s,transform .5s cubic-bezier(.2,1.4,.4,1);
   display:flex;flex-direction:column;align-items:center;gap:56px}
 #result.show{opacity:1;transform:translate(-50%,-50%) scale(var(--rs,1))}
@@ -103,15 +100,14 @@ body.edit{background:#0f0e14;font-size:14px}
 #empty{font-size:32px;color:var(--muted);text-shadow:0 0 6px #000}
 /* 決定後の指定位置表示：結果画面ごとフェードアウトして、当選カードだけを指定位置にフェードイン */
 #stage{transition:opacity .6s}
-/* 重なり順：カード一覧 < 暗幕 < 結果 < 指定位置カード（一覧の当選カードが結果に被らないよう一覧ごと下の層に閉じ込める） */
+/* 重なり順：カード一覧 < 結果 < 指定位置カード（一覧の当選カードが結果に被らないよう一覧ごと下の層に閉じ込める） */
 #stage{z-index:1}
-#veil{z-index:2}
 #result{z-index:3}
 .pin{z-index:4}
 /* 背景色は1920×1080の枠ではなくウィンドウ全体に敷く（縦横比が違っても余白が出ないように） */
 #bg{position:fixed;inset:0;transition:opacity .6s}
 #bg.off{opacity:0}
-#canvas.pinned #stage,#canvas.pinned #veil,#canvas.pinned #result{opacity:0}
+#canvas.pinned #stage,#canvas.pinned #result{opacity:0}
 .pin{position:absolute;opacity:0;transition:opacity .6s;border-color:rgba(185,198,236,.18)}
 .pin.show{opacity:1}
 
@@ -324,10 +320,9 @@ function startDisplay(){
   var stage = el('div', {id:'stage'}, [grid, empty, stageBtn]);
   var rName = el('div', {className:'r-name'});
   var resultEl = el('div', {id:'result'});
-  var veil = el('div', {id:'veil'});
   var bgEl = state.bg.on ? el('div', {id:'bg'}) : null;
   if(bgEl) bgEl.style.background = bgCss(state.bg);
-  var canvas = el('div', {id:'canvas'}, [stage, veil, resultEl]);
+  var canvas = el('div', {id:'canvas'}, [stage, resultEl]);
   if(bgEl) app.appendChild(bgEl);
   app.appendChild(canvas);
   var pool = state.entries.filter(function(e){ return e.enabled; });
@@ -400,7 +395,7 @@ function startDisplay(){
     stage.classList.remove('running');
     document.body.classList.add('instant');
     unpin();
-    stage.classList.remove('done'); resultEl.classList.remove('show'); veil.classList.remove('show');
+    stage.classList.remove('done'); resultEl.classList.remove('show');
     cells.forEach(function(c){ c.classList.remove('win', 'on'); });
     paintExcluded();
     resultEl.innerHTML = '';
@@ -427,7 +422,7 @@ function startDisplay(){
     running = true; lastDrawAt = now;
     stage.classList.add('running');
     unpin();
-    stage.classList.remove('done'); resultEl.classList.remove('show'); veil.classList.remove('show');
+    stage.classList.remove('done'); resultEl.classList.remove('show');
     cells.forEach(function(c){ c.classList.remove('win', 'on'); });
     paintExcluded();
 
@@ -472,7 +467,6 @@ function startDisplay(){
     resultEl.appendChild(el('div', {className:'r-text'}, [el('div', {className:'r-label', text:'次の出撃'}), rName]));
     var againBtn = drawButton('もう一度抽選する');
     if(againBtn) resultEl.appendChild(againBtn);
-    veil.classList.add('show');
     resultEl.classList.add('show');
     running = false;
     stage.classList.remove('running');
