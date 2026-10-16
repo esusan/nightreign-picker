@@ -655,7 +655,7 @@ function startEditor(){
         ].map(function(r){
           return el('label', {className:'chk'}, [el('input', {type:'radio', name:'noRepeat', checked:state.noRepeat === r[1], onchange:function(){ state.noRepeat = r[1]; sync(); }}), r[0]]);
         })),
-        el('p', {className:'ed-note', style:'margin-top:12px', text:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。ページやソースを再読み込みしたとき、URLを貼り直したとき、OBSやブラウザのタブを閉じたときはリセットされます。'})
+        el('p', {className:'ed-note', style:'margin-top:12px', text:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。設定を変えたとき、ページやソースを再読み込みしたとき、OBSやブラウザのタブを閉じたときはリセットされます。'})
       ])
     ]),
     el('h2', {text:'設定を保存するには'}),
