@@ -6,7 +6,7 @@
 <title>ナイトレイン キャラランダムツール（OBS対応）</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --gold:#b9c6ec;
@@ -20,12 +20,14 @@
   --line:#3a3644;
   --accent:#d9a93a;
   --danger:#d0574b;
-  --font:"LINE Seed JP","Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif; /* 遺物ページと同じ */
+  --font:"LINE Seed JP","Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif; /* 編集画面。遺物ページと同じ */
+  --font-display:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif; /* 抽選画面。ゲームに合わせて明朝 */
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:transparent;color:var(--text);
   font-family:var(--font)}
-body.display{overflow:hidden}
+body.display{overflow:hidden;font-family:var(--font-display);font-weight:500}
+.pp-card{font-family:var(--font-display);font-weight:500}
 body.instant *{transition:none !important}
 /* OBS以外（編集画面のプレビューやブラウザで直接開いたとき）だけ、配信画面に見立てた背景画像を敷く */
 body.display.preview{background:#0d0b11 url("img/preview-bg.jpg") center/cover no-repeat}
@@ -159,7 +161,7 @@ button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 .urlbox input{font-family:Consolas,monospace;font-size:12px}
 .side{position:sticky;top:12px}
 .preview-top{margin-top:14px}
-.ed-section{margin:44px 0 0;padding:10px 14px;font-size:17px;font-weight:700;letter-spacing:.08em;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.howto.obs-howto{margin-top:44px}
 .frame{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000}
 .frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .howto{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 16px 12px;margin:14px 0 4px}
@@ -200,8 +202,8 @@ var DEFAULT = {
   button:true, // 画面に「抽選する」ボタンを出す
   scale:70, // 抽選画面（カード一覧と結果）の大きさ（%）
   noRepeat:0, // 連続を避ける：0=しない 1=前回と同じものは出さない 2=全部出るまで同じものは出さない
-  bg:{on:true, color:'#000000', alpha:50}, // 抽選画面の背景色と不透明度%（OFFなら透過）
-  pin:{on:false, x:1330, y:890, w:130}, // 決定後に当選カードを置く位置（1920×1080基準・カード左上・幅px）
+  bg:{on:true, color:'#000000', alpha:80}, // 抽選画面の背景色と不透明度%（OFFなら透過）
+  pin:{on:false, x:1070, y:880, w:140}, // 決定後に当選カードを置く位置（1920×1080基準・カード左上・幅px）
   entries: CHARS.map(function(c){ return {concept:'', charId:c.id, enabled:true}; })
 };
 
@@ -291,7 +293,7 @@ function startDisplay(){
   if(!window.obsstudio) document.body.classList.add('preview');
   var app = document.getElementById('app');
   var grid = el('div', {id:'grid'});
-  var empty = el('div', {id:'empty', text:'抽選対象のエントリーがありません', hidden:true});
+  var empty = el('div', {id:'empty', text:'抽選対象がありません', hidden:true});
   // 「抽選する」ボタン。一覧の下と結果画面の下に1つずつ置き、状態に応じてどちらかだけ見せる
   function drawButton(text){ return state.button ? el('button', {className:'draw-btn', text:text, onclick:function(ev){ this.blur(); draw(); }}) : null; }
   // 自動抽選のときは表示と同時に抽選が始まるので、一覧側のボタンは出さない（結果画面の「もう一度」は出す）
@@ -612,10 +614,10 @@ function startEditor(){
   ]);
   // 上段（共通）：エントリー｜連続回避・あとで編集　下段（OBS用）：オプション｜URL
   var left = el('div', {}, [
-    el('h2', {}, ['エントリー（コンセプト × キャラ）', countEl]),
-    el('p', {className:'ed-note', text:'チェックを外すと抽選から外れます。コンセプトが空の場合はキャラ名だけが表示されます。同じキャラを複製して、コンセプト違いのエントリーを作ることもできます。'}),
+    el('h2', {}, ['コンセプト × キャラ', countEl]),
+    el('p', {className:'ed-note', text:'チェックを外すと抽選から外れます。コンセプトが空の場合はキャラ名だけが表示されます。同じキャラを複製して、コンセプト違いを作ることもできます。'}),
     listBox,
-    el('p', {}, [el('button', {className:'b', text:'＋ エントリーを追加', onclick:function(){
+    el('p', {}, [el('button', {className:'b', text:'＋ 追加', onclick:function(){
       if(state.entries.length >= MAX_ENTRIES){ toast('登録できるのは最大' + MAX_ENTRIES + '件までです'); return; }
       state.entries.push({concept:'', charId:CHARS[0].id, enabled:true}); buildList(); sync();
     }})])
@@ -630,11 +632,13 @@ function startEditor(){
         ].map(function(r){
           return el('label', {className:'chk'}, [el('input', {type:'radio', name:'noRepeat', checked:state.noRepeat === r[1], onchange:function(){ state.noRepeat = r[1]; sync(); }}), r[0]]);
         })),
-        el('p', {className:'ed-note', style:'margin-top:12px', text:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。ページやソースを再読み込みしたときや、URLを貼り直したときはリセットされます。'})
+        el('p', {className:'ed-note', style:'margin-top:12px', text:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。ページやソースを再読み込みしたとき、URLを貼り直したとき、OBSやブラウザのタブを閉じたときはリセットされます。'})
       ])
     ]),
     el('h2', {text:'設定を保存するには'}),
-    el('p', {className:'ed-note', text:'設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。今のアドレスバーのURLをブックマークしておけば、続きから編集できます。'})
+    el('p', {className:'ed-note', text:'今のアドレスバーのURLをブックマークしておけば、設定を保存しておけます。設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。'}),
+    // 今の設定を失わないよう、初期設定のページは新しいタブで開く
+    el('button', {className:'b', style:'margin-top:8px', text:'初期設定のページを開く', onclick:function(){ window.open(baseUrl(), '_blank'); }})
   ]);
 
   var obsLeft = el('div', {}, [
@@ -665,12 +669,12 @@ function startEditor(){
       el('div', {className:'opt'}, [
         el('h3', {text:'抽選ボタン'}),
         el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.button, onchange:function(){ state.button = this.checked; sync(); }}), '画面に「抽選する」ボタンを表示する']),
-        el('p', {className:'ed-note', text:'自動で抽選する設定のときは、結果画面の「もう一度抽選する」ボタンだけが表示されます。OBSでは、ソースを右クリック→「対話」を開くとボタンを押せます。ボタンは配信画面にも映るので、映したくない場合はチェックを外してください（Spaceキーでも抽選できます）。'})
+        el('p', {className:'ed-note', text:'ボタンは配信画面にも映ります。映したくない場合はチェックを外してください（ソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押すと抽選できます）。'})
       ]),
       el('div', {className:'opt'}, [
         el('h3', {text:'自動で抽選する'}),
         el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.autoStart, onchange:function(){ state.autoStart = this.checked; sync(); }}), '画面が表示されたら自動で抽選する']),
-        el('p', {className:'ed-note', text:'チェックを入れると、ページを開いたときや、OBSでシーンを切り替えたりソースを表示し直したりしたときに、自動で抽選が始まります。OBSで手動で抽選するときは、ソースを右クリック→「対話」を開き、ボタンを押すか、画面をクリックしてからSpaceキーを押してください。'})
+        el('p', {className:'ed-note', text:'ページを開いたときや、シーンを切り替えたりソースを表示し直したりしたときに、自動で抽選が始まります。'})
       ])
     ])
   ]);
@@ -690,8 +694,7 @@ function startEditor(){
     el('div', {className:'ed-head'}, [el('h1', {text:'ナイトレイン キャラランダムツール（OBS対応）'}), el('span', {text:'次に出撃するキャラを抽選するツール。OBSのブラウザソースとしても使えます'})]),
     preview,
     el('div', {className:'ed-cols wide-left'}, [left, right]),
-    el('div', {className:'ed-section', text:'OBS用の設定'}),
-    el('div', {className:'howto'}, [
+    el('div', {className:'howto obs-howto'}, [
       el('h2', {text:'OBSでの使い方'}),
       el('ol', {className:'steps'}, [
         el('li', {text:'必要に応じて下の「オプション」を設定してから、「抽選画面のURL」の「コピー」を押してください。'}),
