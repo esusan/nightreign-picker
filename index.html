@@ -204,6 +204,12 @@ button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 .howto h2{margin:8px 0 14px;padding:0;border:0;font-size:20px}
 .steps{margin:0;padding-left:24px;color:var(--muted);font-size:15.5px;line-height:1.8}
 .howto-note{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.7}
+.howto h3{margin:22px 0 0;font-size:16px}
+.howto .keys-note{margin:4px 0 10px}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;align-items:center;margin:0 0 4px;color:var(--muted);font-size:15px}
+.keys dt{display:flex;gap:6px}
+.keys dd{margin:0}
+.keys kbd{display:inline-block;min-width:2.2em;padding:2px 8px;text-align:center;font:inherit;font-size:13px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px}
 #toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--accent);color:#1a1408;padding:8px 16px;border-radius:6px;z-index:40;opacity:0;transition:opacity .3s;pointer-events:none;font-weight:700}
 #toast.show{opacity:1}
 </style>
@@ -256,7 +262,7 @@ var I18N = {
     add:'＋ 追加',
     noRepH:'同じ結果の連続を避ける',
     noRep0:'しない', noRep1:'前回と同じものは出さない', noRep2:'全部出るまで同じものは出さない',
-    noRepNote:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。設定を変えたとき、ページやソースを再読み込みしたとき、OBSやブラウザのタブを閉じたときはリセットされます。',
+    noRepNote:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。設定を変えたとき、ページやソースを再読み込みしたとき、OBSやブラウザのタブを閉じたときはリセットされます。Rキーで手動リセットもできます。',
     saveH:'設定を保存するには',
     saveNote:'今のアドレスバーのURLをブックマークしておけば、設定を保存しておけます。設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。',
     openDefault:'初期設定のページを開く',
@@ -276,6 +282,11 @@ var I18N = {
     step2:'OBSで「ソース」→「ブラウザ」を追加し、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。',
     step3:'抽選するときは、ソースを右クリック→「対話」を開き、「出撃」ボタンを押すか、画面をクリックしてからSpaceキーを押してください。「自動で抽選する」にチェックを入れると、シーンを切り替えたりソースを表示し直したりするたびに自動で抽選されます。',
     howtoNote:'※設定を変えるとURLも変わるため、OBS側のURLも貼り直してください。',
+    keysH:'ショートカットキー',
+    keysNote:'抽選画面で使えます。OBSではソースを右クリック→「対話」を開き、画面をクリックしてから押してください。',
+    keyDraw:'抽選する',
+    keyBack:'抽選前の一覧に戻す（抽選中なら取り消し）',
+    keyReset:'「同じ結果の連続を避ける」の履歴をリセットする',
     author:'作成者', authorName:'えすさん',
     disclaimer:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'
   },
@@ -303,7 +314,7 @@ var I18N = {
     add:'+ Add',
     noRepH:'Avoid Repeats',
     noRep0:'Off', noRep1:'Never the same as the last result', noRep2:'No repeats until every entry has come up',
-    noRepNote:'The draw history is kept when you hide the source or switch scenes in OBS. It resets when you change settings, reload the page or source, or close OBS or the browser tab.',
+    noRepNote:'The draw history is kept when you hide the source or switch scenes in OBS. It resets when you change settings, reload the page or source, or close OBS or the browser tab. You can also reset it manually with the R key.',
     saveH:'Saving Your Settings',
     saveNote:'Bookmark the URL in your address bar to save your settings. All settings live only in this page\'s URL; nothing is saved on a server.',
     openDefault:'Open with Default Settings',
@@ -323,6 +334,11 @@ var I18N = {
     step2:'In OBS, add a "Browser" source under "Sources" and paste the URL. Set the width to 1920 and the height to 1080.',
     step3:'To draw, right-click the source → "Interact", then click the "Draw" button, or click the screen and press Space. With "Auto Draw" checked, a draw runs every time you switch scenes or show the source again.',
     howtoNote:'* Changing settings also changes the URL, so paste the new URL into OBS again.',
+    keysH:'Keyboard Shortcuts',
+    keysNote:'These work on the draw screen. In OBS, right-click the source → "Interact", click the screen, then press the key.',
+    keyDraw:'Draw',
+    keyBack:'Back to the card list (cancels a draw in progress)',
+    keyReset:'Reset the "Avoid Repeats" history',
     author:'Created by', authorName:'esusan',
     disclaimer:'* This is an unofficial fan tool, not affiliated with the game\'s developer or publisher. Game images are the property of their respective owners.'
   }
@@ -518,6 +534,11 @@ function startDisplay(){
     lastWinner = i; usedWinners[i] = true;
     if(Object.keys(usedWinners).length >= cells.length) usedWinners = {}; // 一巡したら履歴をリセット
   }
+  // Rキーで履歴を手動リセットする。抽選中は演出を崩さないよう、グレーアウトの塗り直しだけ次の抽選に任せる
+  function clearHistory(){
+    lastWinner = -1; usedWinners = {};
+    if(!running) paintExcluded();
+  }
   // 次の抽選で当たらないカードをグレーアウトする
   function paintExcluded(){
     var cand = candidates(cells.length);
@@ -620,6 +641,10 @@ function startDisplay(){
   document.addEventListener('keydown', function(ev){
     // OBSの「対話」から送られるキー入力は ev.code が空のことがあるので、key / keyCode でも判定する
     if(ev.code === 'Space' || ev.code === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar' || ev.key === 'Enter' || ev.keyCode === 32 || ev.keyCode === 13){ ev.preventDefault(); draw(); }
+    // Escで抽選前の一覧に戻す（抽選中なら取り消し、決定後の表示も消す）
+    else if(ev.code === 'Escape' || ev.key === 'Escape' || ev.key === 'Esc' || ev.keyCode === 27){ ev.preventDefault(); reset(); }
+    // Ctrl+R（再読み込み）などは邪魔しない
+    else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && (ev.code === 'KeyR' || ev.key === 'r' || ev.key === 'R' || ev.keyCode === 82)){ ev.preventDefault(); clearHistory(); }
   });
   // OBSで非表示になったら抽選前の状態に戻し、表示されたら（自動抽選ONなら）抽選する。
   // 目のアイコンでの表示切替（Visible）とシーン切替（Active）の両方を拾う
@@ -888,7 +913,16 @@ function startEditor(){
         el('li', {text:t('step2')}),
         el('li', {text:t('step3')})
       ]),
-      el('p', {className:'howto-note', text:t('howtoNote')})
+      el('p', {className:'howto-note', text:t('howtoNote')}),
+      el('h3', {text:t('keysH')}),
+      el('p', {className:'howto-note keys-note', text:t('keysNote')}),
+      el('dl', {className:'keys'}, [
+        [['Space', 'Enter'], 'keyDraw'], [['Esc'], 'keyBack'], [['R'], 'keyReset']
+      ].reduce(function(a, k){
+        a.push(el('dt', {}, k[0].map(function(n){ return el('kbd', {text:n}); })));
+        a.push(el('dd', {text:t(k[1])}));
+        return a;
+      }, []))
     ]),
     el('div', {className:'ed-cols'}, [obsLeft, obsRight]),
     el('div', {className:'ed-foot'}, [
