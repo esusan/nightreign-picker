@@ -185,6 +185,7 @@ button.b.primary{background:var(--accent);color:#1a1408;border-color:var(--accen
 button.b.icon{padding:6px 9px}
 button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 .rows{display:flex;flex-direction:column;gap:6px}
+.list-tools{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
 .row{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
 .row.off{opacity:.5}
 .row .ico{width:30px;height:30px;flex:none;border-radius:50%;background:var(--c,#555) center/cover no-repeat}
@@ -195,6 +196,8 @@ button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 .count{color:var(--muted);font-size:12.5px;margin-left:8px}
 .urlbox{display:flex;gap:6px}
 .urlbox input{font-family:Consolas,monospace;font-size:12px}
+.usage{margin-top:28px}
+.usage .urlbox input{font-family:inherit;font-size:13px}
 .side{position:sticky;top:12px}
 .preview-top{margin-top:14px}
 .howto.obs-howto{margin-top:44px}
@@ -204,8 +207,7 @@ button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 .howto h2{margin:8px 0 14px;padding:0;border:0;font-size:20px}
 .steps{margin:0;padding-left:24px;color:var(--muted);font-size:15.5px;line-height:1.8}
 .howto-note{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.7}
-.howto h3{margin:22px 0 0;font-size:16px}
-.howto .keys-note{margin:4px 0 10px}
+.howto .keys-note{margin:-6px 0 12px}
 .keys{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;align-items:center;margin:0 0 4px;color:var(--muted);font-size:15px}
 .keys dt{display:flex;gap:6px}
 .keys dd{margin:0}
@@ -250,7 +252,7 @@ var I18N = {
     count:'{0} / {1}件',
     maxToast:'登録できるのは最大{0}件までです',
     enable:'抽選対象にする',
-    conceptPh:'コンセプト（例：ハルハル）',
+    conceptPh:'コンセプト（例：ハルハル）', conceptPhShort:'コンセプト',
     sampleConcept:'ハルハル',
     up:'上へ', down:'下へ', dup:'複製', del:'削除',
     resize:'ドラッグでサイズ変更',
@@ -260,6 +262,7 @@ var I18N = {
     entriesH:'コンセプト × キャラ',
     entriesNote:'チェックを外すと抽選から外れます。コンセプトが空の場合はキャラ名だけが表示されます。同じキャラを複製して、コンセプト違いを作ることもできます。',
     add:'＋ 追加',
+    allOn:'すべてON', allOff:'すべてOFF',
     noRepH:'同じ結果の連続を避ける',
     noRep0:'しない', noRep1:'前回と同じものは出さない', noRep2:'全部出るまで同じものは出さない',
     noRepNote:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。設定を変えたとき、ページやソースを再読み込みしたとき、OBSやブラウザのタブを閉じたときはリセットされます。Rキーで手動リセットもできます。',
@@ -287,6 +290,11 @@ var I18N = {
     keyDraw:'抽選する',
     keyBack:'抽選前の一覧に戻す（抽選中なら取り消し）',
     keyReset:'「同じ結果の連続を避ける」の履歴をリセットする',
+    usageH:'ご利用について',
+    usageNote:'配信や動画で使う時に許可は不要です。ご自由にお使いください。',
+    creditNote:'必須ではありませんが、概要欄などでこのページを紹介してもらえると嬉しいです。',
+    creditLabel:'記載例', creditText:'ナイトレイン キャラランダムツール',
+    copiedCredit:'記載例をコピーしました',
     author:'作成者', authorName:'えすさん',
     disclaimer:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'
   },
@@ -302,7 +310,7 @@ var I18N = {
     count:'{0} / {1}',
     maxToast:'You can add up to {0} entries',
     enable:'Include in the draw',
-    conceptPh:'Concept (e.g. Bleed)',
+    conceptPh:'Concept (e.g. Bleed)', conceptPhShort:'Concept',
     sampleConcept:'Bleed',
     up:'Move up', down:'Move down', dup:'Duplicate', del:'Delete',
     resize:'Drag to resize',
@@ -312,6 +320,7 @@ var I18N = {
     entriesH:'Concept × Nightfarer',
     entriesNote:'Uncheck an entry to leave it out of the draw. If the concept is empty, only the Nightfarer\'s name is shown. Duplicate a Nightfarer to make entries with different concepts.',
     add:'+ Add',
+    allOn:'Check All', allOff:'Uncheck All',
     noRepH:'Avoid Repeats',
     noRep0:'Off', noRep1:'Never the same as the last result', noRep2:'No repeats until every entry has come up',
     noRepNote:'The draw history is kept when you hide the source or switch scenes in OBS. It resets when you change settings, reload the page or source, or close OBS or the browser tab. You can also reset it manually with the R key.',
@@ -339,6 +348,11 @@ var I18N = {
     keyDraw:'Draw',
     keyBack:'Back to the card list (cancels a draw in progress)',
     keyReset:'Reset the "Avoid Repeats" history',
+    usageH:'Usage',
+    usageNote:'No permission is needed to use this tool on streams or in videos. Feel free to use it.',
+    creditNote:'Not required, but I\'d be happy if you shared this page in your stream or video description.',
+    creditLabel:'Example', creditText:'NIGHTREIGN Random Nightfarer Picker',
+    copiedCredit:'Copied the example text',
     author:'Created by', authorName:'esusan',
     disclaimer:'* This is an unofficial fan tool, not affiliated with the game\'s developer or publisher. Game images are the property of their respective owners.'
   }
@@ -402,6 +416,7 @@ function decode(str){
   }catch(e){ return null; }
 }
 function baseUrl(){ return location.origin + location.pathname; }
+var PUBLIC_URL = 'https://esusan.github.io/nightreign-picker/';
 function displayUrl(st){ return baseUrl() + '?d=' + encode(st); }
 function editUrl(st){ return baseUrl() + '?d=' + encode(st) + '&edit'; }
 
@@ -683,10 +698,10 @@ function startEditor(){
       frameTimer = setTimeout(function(){ frame.src = displayUrl(state); }, 500);
     }
   }
-  function copy(text, msg){
-    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+  function copy(input, msg){
+    (navigator.clipboard ? navigator.clipboard.writeText(input.value) : Promise.reject())
       .then(function(){ toast(msg); })
-      .catch(function(){ obsInput.select(); document.execCommand('copy'); toast(msg); });
+      .catch(function(){ input.select(); document.execCommand('copy'); toast(msg); });
   }
 
   function buildList(){
@@ -701,7 +716,7 @@ function startEditor(){
       [
         el('input', {type:'checkbox', checked:e.enabled, title:t('enable'), onchange:function(){ e.enabled = this.checked; row.classList.toggle('off', !e.enabled); sync(); }}),
         ico,
-        el('input', {type:'text', className:'grow', value:e.concept, maxLength:16, placeholder:t('conceptPh'), oninput:function(){ e.concept = this.value; sync(); }}),
+        el('input', {type:'text', className:'grow', value:e.concept, maxLength:16, placeholder:t(idx === 0 ? 'conceptPh' : 'conceptPhShort'), oninput:function(){ e.concept = this.value; sync(); }}),
         sel,
         el('button', {className:'b icon', text:'↑', title:t('up'), onclick:function(){ move(idx, -1); }}),
         el('button', {className:'b icon', text:'↓', title:t('down'), onclick:function(){ move(idx, 1); }}),
@@ -713,6 +728,9 @@ function startEditor(){
       ].forEach(function(k){ row.appendChild(k); });
       listBox.appendChild(row);
     });
+  }
+  function setAll(on){
+    state.entries.forEach(function(e){ e.enabled = on; }); buildList(); sync();
   }
   function move(i, d){
     var j = i + d; if(j < 0 || j >= state.entries.length) return;
@@ -812,6 +830,10 @@ function startEditor(){
   var left = el('div', {}, [
     el('h2', {}, [t('entriesH'), countEl]),
     el('p', {className:'ed-note', text:t('entriesNote')}),
+    el('div', {className:'list-tools'}, [
+      el('button', {className:'b', text:t('allOn'), onclick:function(){ setAll(true); }}),
+      el('button', {className:'b', text:t('allOff'), onclick:function(){ setAll(false); }})
+    ]),
     listBox,
     el('p', {}, [el('button', {className:'b', text:t('add'), onclick:function(){
       if(state.entries.length >= MAX_ENTRIES){ toast(t('maxToast', MAX_ENTRIES)); return; }
@@ -891,7 +913,21 @@ function startEditor(){
   var obsRight = el('div', {className:'side'}, [
     el('h2', {text:t('urlH')}),
     el('div', {className:'urlbox'}, [obsInput,
-      el('button', {className:'b primary', text:t('copy'), onclick:function(){ copy(obsInput.value, t('copied')); }})])
+      el('button', {className:'b primary', text:t('copy'), onclick:function(){ copy(obsInput, t('copied')); }})])
+  ]);
+
+  // 概要欄に貼ってもらう用の紹介文。ローカル確認時もURLは公開先にする
+  var creditInput = el('input', {type:'text', readOnly:true,
+    value:t('creditText') + ' ' + PUBLIC_URL + (LANG === 'en' ? '?lang=en' : '')});
+  var usage = el('div', {className:'usage'}, [
+    el('h2', {text:t('usageH')}),
+    el('p', {className:'ed-note', text:t('usageNote')}),
+    el('p', {className:'ed-note', text:t('creditNote')}),
+    el('div', {className:'field'}, [
+      el('label', {text:t('creditLabel')}),
+      el('div', {className:'urlbox'}, [creditInput,
+        el('button', {className:'b primary', text:t('copy'), onclick:function(){ copy(creditInput, t('copiedCredit')); }})])
+    ])
   ]);
 
   // 言語切替。設定はすべてURLに入っているので、言語を変えたURLで開き直すだけでよい
@@ -918,11 +954,13 @@ function startEditor(){
         el('li', {text:t('step2')}),
         el('li', {text:t('step3')})
       ]),
-      el('p', {className:'howto-note', text:t('howtoNote')}),
-      el('h3', {text:t('keysH')}),
+      el('p', {className:'howto-note', text:t('howtoNote')})
+    ]),
+    el('div', {className:'howto'}, [
+      el('h2', {text:t('keysH')}),
       el('p', {className:'howto-note keys-note', text:t('keysNote')}),
       el('dl', {className:'keys'}, [
-        [['Space', 'Enter'], 'keyDraw'], [['Esc'], 'keyBack'], [['R'], 'keyReset']
+        [['Space'], 'keyDraw'], [['Enter'], 'keyDraw'], [['Esc'], 'keyBack'], [['R'], 'keyReset']
       ].reduce(function(a, k){
         a.push(el('dt', {}, k[0].map(function(n){ return el('kbd', {text:n}); })));
         a.push(el('dd', {text:t(k[1])}));
@@ -930,6 +968,7 @@ function startEditor(){
       }, []))
     ]),
     el('div', {className:'ed-cols'}, [obsLeft, obsRight]),
+    usage,
     el('div', {className:'ed-foot'}, [
       el('div', {className:'foot-links'}, [
         el('span', {className:'foot-label', text:t('author')}),
