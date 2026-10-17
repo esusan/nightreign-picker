@@ -116,7 +116,7 @@ body.edit{background:#0f0e14;font-size:14px}
 #canvas.pinned #stage,#canvas.pinned #result{opacity:0}
 .pin{position:absolute;opacity:0;transition:opacity .6s;border-color:rgba(185,198,236,.18)}
 .pin.show{opacity:1}
-/* 決定後の表示：上の見出しの段を削って正方形にし、コンセプトだけを画像の上部に重ねる（文字の後ろは上から暗くするグラデーション） */
+/* ミニカード：上の見出しの段を削って正方形にし、コンセプトだけを画像の上部に重ねる（文字の後ろは上から暗くするグラデーション） */
 .cell.pinc{aspect-ratio:1/1}
 .cell.pinc .art img{-webkit-mask:none;mask:none}
 .cell.pinc .label{top:0;padding:calc(var(--u)*10) 4% calc(var(--u)*30);background:linear-gradient(0deg,transparent,rgba(8,7,12,.6) 40%,rgba(8,7,12,.88))}
@@ -214,6 +214,8 @@ button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 .keys{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;align-items:center;margin:0 0 4px;color:var(--muted);font-size:15px}
 .keys dt{display:flex;gap:6px}
 .keys dd{margin:0}
+.keys-group + .keys-group{margin-top:14px}
+.keys-group h3{margin:0 0 8px;font-size:14px;font-weight:700;color:var(--text)}
 .keys kbd{display:inline-block;min-width:2.2em;padding:2px 8px;text-align:center;font:inherit;font-size:13px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px}
 #toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--accent);color:#1a1408;padding:8px 16px;border-radius:6px;z-index:40;opacity:0;transition:opacity .3s;pointer-events:none;font-weight:700}
 #toast.show{opacity:1}
@@ -274,10 +276,10 @@ var I18N = {
     openDefault:'初期設定のページを開く',
     optH:'オプション',
     scaleH:'カード一覧と結果画面の大きさ',
-    scaleNote:'カード一覧と結果画面の大きさを、画面いっぱい（100%）を基準に縮小できます。「決定後の表示」のカードの大きさは変わりません。',
+    scaleNote:'カード一覧と結果画面の大きさを、画面いっぱい（100%）を基準に縮小できます。「ミニカード」のカードの大きさは変わりません。',
     bgH:'背景色', bgChk:'背景色を付ける', bgNote:'チェックを外しているときは背景が透過されます。',
-    pinH:'決定後の表示', pinChk:'決定したキャラを指定した位置に表示する',
-    pinNote:'結果画面を5秒表示した後、決定したキャラのカードだけを指定した位置に切り替えて表示します。位置は1920×1080の画面の左上を0としています。',
+    pinH:'ミニカード', pinChk:'決定したキャラのミニカードを指定した位置に表示する',
+    pinNote:'結果画面を5秒表示した後、決定したキャラを小さなカードにして指定した位置に切り替えて表示します。位置は1920×1080の画面の左上を0としています。',
     btnH:'抽選ボタン', btnChk:'画面に「出撃」ボタンを表示する',
     btnNote:'ボタンは配信画面にも映ります。映したくない場合はチェックを外してください（ソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押すと抽選できます）。',
     autoH:'自動で抽選する', autoChk:'画面が表示されたら自動で抽選する',
@@ -294,8 +296,11 @@ var I18N = {
     soundCase2:'ソースのプロパティで「OBSで音声を制御する」にチェックを入れてください。自分にも聞こえるようにするには、音声ミキサーの「オーディオの詳細プロパティ」で、このソースの音声モニタリングを「モニターと出力」にしてください。',
     keysH:'ショートカットキー',
     keysNote:'OBSではソースを右クリック→「対話」を開き、画面をクリックしてから押してください。',
+    keysOpH:'操作', keysScrH:'画面の切り替え',
     keyDraw:'抽選する',
     keyBack:'抽選前の一覧に戻す（抽選中なら取り消し）',
+    keyResult:'直前の抽選の結果画面を表示する',
+    keyMini:'直前の抽選のミニカードを表示する（オプションがOFFでも初期位置に表示）',
     keyReset:'「同じ結果の連続を避ける」の履歴をリセットする',
     usageH:'ご利用について',
     usageNote:'配信や動画で使う時に許可は不要です。ご自由にお使いください。',
@@ -336,10 +341,10 @@ var I18N = {
     openDefault:'Open with Default Settings',
     optH:'Options',
     scaleH:'Card List and Result Size',
-    scaleNote:'Scales down the card list and the result screen, with 100% filling the screen. Does not change the card size in "Keep Result on Screen".',
+    scaleNote:'Scales down the card list and the result screen, with 100% filling the screen. Does not change the card size in "Mini Card".',
     bgH:'Background Color', bgChk:'Use a background color', bgNote:'When unchecked, the background is transparent.',
-    pinH:'Keep Result on Screen', pinChk:'Show the chosen Nightfarer at a set position',
-    pinNote:'After the result screen shows for 5 seconds, only the chosen card stays on screen at the set position. Positions are measured from the top-left of a 1920×1080 screen.',
+    pinH:'Mini Card', pinChk:'Show a mini card of the chosen Nightfarer at a set position',
+    pinNote:'After the result screen shows for 5 seconds, it switches to a small card of the chosen Nightfarer at the set position. Positions are measured from the top-left of a 1920×1080 screen.',
     btnH:'Draw Button', btnChk:'Show the "Draw" button on screen',
     btnNote:'The button also appears on stream. To hide it, uncheck this (you can still draw by right-clicking the source → "Interact", clicking the screen, and pressing Space).',
     autoH:'Auto Draw', autoChk:'Draw automatically when the screen is shown',
@@ -356,8 +361,11 @@ var I18N = {
     soundCase2:'Check "Control audio via OBS" in the source properties. To hear them yourself as well, open "Advanced Audio Properties" in the Audio Mixer and set this source\'s Audio Monitoring to "Monitor and Output".',
     keysH:'Keyboard Shortcuts',
     keysNote:'In OBS, right-click the source → "Interact", click the screen, then press the key.',
+    keysOpH:'Controls', keysScrH:'Switch Screens',
     keyDraw:'Draw',
     keyBack:'Back to the card list (cancels a draw in progress)',
+    keyResult:'Show the result screen for the last draw',
+    keyMini:'Show the mini card for the last draw (uses the default position if the option is off)',
     keyReset:'Reset the "Avoid Repeats" history',
     usageH:'Usage',
     usageNote:'No permission is needed to use this tool on streams or in videos. Feel free to use it.',
@@ -480,7 +488,7 @@ function makeCell(e){
   cell.style.setProperty('--c', c.color);
   return cell;
 }
-// 決定後の表示用に見出しを整理する（小さいのでキャラ名は出さず、コンセプトだけをキャラ名の位置に大きめに。無ければ見出しの段ごと削って正方形にする）
+// ミニカード用に見出しを整理する（小さいのでキャラ名は出さず、コンセプトだけをキャラ名の位置に大きめに。無ければ見出しの段ごと削って正方形にする）
 function toPinCell(cell, e){
   var label = cell.querySelector('.label');
   if(e.concept){
@@ -491,6 +499,18 @@ function toPinCell(cell, e){
 }
 // 上の段を削って正方形にするので、下端の位置が変わらないよう削った分だけ下げる
 function pinTop(e, p){ return p.y + Math.round(p.w / 3); }
+
+// ショートカットキー一覧の1グループ（見出し＋キーと説明の表）
+function keyList(head, rows){
+  return el('div', {className:'keys-group'}, [
+    el('h3', {text:t(head)}),
+    el('dl', {className:'keys'}, rows.reduce(function(a, k){
+      a.push(el('dt', {}, k[0].map(function(n){ return el('kbd', {text:n}); })));
+      a.push(el('dd', {text:t(k[1])}));
+      return a;
+    }, []))
+  ]);
+}
 
 if(isEdit) startEditor(); else startDisplay();
 
@@ -550,7 +570,7 @@ function startDisplay(){
   fit();
   window.addEventListener('resize', fit);
 
-  var running = false, lastDrawAt = 0;
+  var running = false, lastDrawAt = 0, lastWin = -1; // lastWin：直前の当選（2・3キーで出し直す用。一覧に戻しても消さない）
   var timers = [], pinTimer = null, pinEl = null;
 
   // 連続を避けるための当選履歴。ページを開いている間だけメモリに持つ（非表示→再表示では消えない）
@@ -583,11 +603,21 @@ function startDisplay(){
   // 効果音（効果音ラボ）。抽選中は心臓の鼓動、決定して結果画面に切り替わるときに「シーン切り替え2」
   // OBSで<audio>を鳴らすと途切れてブチブチ鳴ることがあるので、Web Audioで開いた時点に全部デコードしておき、メモリから鳴らす
   var AC = window.AudioContext || window.webkitAudioContext;
-  var actx = SOUND_ENABLED && state.sound.on && AC ? new AC() : null, gain = null, seBuf = {}, seSrc = {};
+  // 抽選の演出中に音が途切れないよう、出力バッファを大きめに取る（playback）。OBSに合わせて48kHzで鳴らす
+  var actx = null, gain = null, seBuf = {}, seSrc = {};
+  if(SOUND_ENABLED && state.sound.on && AC){
+    try{ actx = new AC({latencyHint:'playback', sampleRate:48000}); }catch(e){ actx = new AC(); }
+  }
   if(actx){
     gain = actx.createGain();
     gain.gain.value = state.sound.vol / 100;
     gain.connect(actx.destination);
+    // 鳴っていない間も無音を流し続け、OBSへの音声の受け渡しが鳴り始め・止めたときに開き直されないようにする
+    var keep = actx.createBufferSource();
+    keep.buffer = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+    keep.loop = true;
+    keep.connect(actx.destination);
+    keep.start();
     [['beat', 'se/heartbeat.mp3'], ['decide', 'se/decide.mp3']].forEach(function(s){
       fetch(s[1]).then(function(r){ return r.arrayBuffer(); })
         .then(function(ab){ actx.decodeAudioData(ab, function(buf){ seBuf[s[0]] = buf; }, function(){}); })
@@ -599,16 +629,27 @@ function startDisplay(){
     // ユーザー操作なしの自動抽選では、ブラウザが再開を許さず鳴らないことがある
     if(actx.state === 'suspended') actx.resume().catch(function(){});
     stopSe(k);
-    var src = actx.createBufferSource();
+    // 鳴り始めと止めるときに波形が急に切れるとプツッと鳴るので、音ごとのGainで短くフェードする
+    var src = actx.createBufferSource(), g = actx.createGain(), t = actx.currentTime;
     src.buffer = seBuf[k];
-    src.connect(gain);
-    src.start();
-    seSrc[k] = src;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(1, t + 0.01);
+    src.connect(g);
+    g.connect(gain);
+    src.start(t);
+    seSrc[k] = {src:src, g:g};
   }
   // kを省略するとすべて止める
   function stopSe(k){
     (k ? [k] : Object.keys(seSrc)).forEach(function(n){
-      if(seSrc[n]){ try{ seSrc[n].stop(); }catch(e){} seSrc[n] = null; }
+      var s = seSrc[n];
+      if(!s) return;
+      var t = actx.currentTime;
+      s.g.gain.cancelScheduledValues(t);
+      s.g.gain.setValueAtTime(s.g.gain.value, t);
+      s.g.gain.linearRampToValueAtTime(0, t + 0.04);
+      try{ s.src.stop(t + 0.05); }catch(e){}
+      seSrc[n] = null;
     });
   }
   function unpin(){
@@ -685,12 +726,25 @@ function startDisplay(){
   }
   function finish(i){
     recordWinner(i);
+    lastWin = i;
     playSe('decide');
-    cells[i].classList.remove('on'); cells[i].classList.add('win');
+    running = false;
+    stage.classList.remove('running');
+    showResult(i, true);
+  }
+  // 結果画面を出す。auto=false（2キー）のときはミニカードへ自動で切り替えず、「もう一度」も出す
+  function showResult(i, auto){
+    unpin();
+    cells.forEach(function(c){ c.classList.remove('win', 'on'); });
+    cells[i].classList.add('win');
     stage.classList.add('done');
+    // ミニカードから戻ったときも拡大の演出が出るよう、一度消してから出し直す
+    resultEl.classList.remove('show');
+    void resultEl.offsetHeight;
     // 当選カードを複製して中央に大きく出す
     var big = cells[i].cloneNode(true);
-    big.classList.remove('win', 'on');
+    // 一覧に戻した後に2キーで出すと、連続を避ける設定で当選カードがグレーアウトしていることがある
+    big.classList.remove('win', 'on', 'out');
     big.style.setProperty('--cw', Math.floor(Math.min(CANVAS_H * 0.5 * 0.75, CANVAS_W * 0.3)) + 'px');
     rName.innerHTML = '';
     if(pool[i].concept) rName.appendChild(el('span', {className:'r-concept', text:pool[i].concept}));
@@ -698,20 +752,34 @@ function startDisplay(){
     resultEl.innerHTML = '';
     resultEl.appendChild(big);
     resultEl.appendChild(el('div', {className:'r-text'}, [el('div', {className:'r-label', text:t('next')}), rName]));
-    // 決定後の表示がONなら、結果画面はすぐ切り替わって押せないので「もう一度」は出さない
-    var againBtn = state.pin.on ? null : drawButton(t('again'));
+    // ミニカードがONなら、結果画面はすぐ切り替わって押せないので「もう一度」は出さない
+    var againBtn = auto && state.pin.on ? null : drawButton(t('again'));
     if(againBtn) resultEl.appendChild(againBtn);
     resultEl.classList.add('show');
-    running = false;
-    stage.classList.remove('running');
-    if(state.pin.on) pinTimer = setTimeout(function(){ pinWinner(i); }, PIN_DELAY_MS);
+    if(auto && state.pin.on) pinTimer = setTimeout(function(){ pinWinner(i); }, PIN_DELAY_MS);
+  }
+  // 3キーでミニカードを出す。オプションがOFFのときは state.pin に初期位置が入っている
+  function showMini(i){
+    if(pinEl) return;
+    clearTimeout(pinTimer); pinTimer = null;
+    pinWinner(i);
+  }
+  // 1・2・3キーでの画面切り替え。結果画面とミニカードは直前の抽選結果を出す（抽選中・まだ抽選していないときは何もしない）
+  function switchScreen(n){
+    if(n === 1){ reset(); return; }
+    if(running || lastWin < 0) return;
+    if(n === 2) showResult(lastWin, false);
+    else showMini(lastWin);
   }
 
   document.addEventListener('keydown', function(ev){
     // OBSの「対話」から送られるキー入力は ev.code が空のことがあるので、key / keyCode でも判定する
     if(ev.code === 'Space' || ev.code === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar' || ev.key === 'Enter' || ev.keyCode === 32 || ev.keyCode === 13){ ev.preventDefault(); draw(); }
-    // Escで抽選前の一覧に戻す（抽選中なら取り消し、決定後の表示も消す）
+    // Escで抽選前の一覧に戻す（抽選中なら取り消し、ミニカードも消す）
     else if(ev.code === 'Escape' || ev.key === 'Escape' || ev.key === 'Esc' || ev.keyCode === 27){ ev.preventDefault(); reset(); }
+    // 1＝抽選前の一覧、2＝結果画面、3＝ミニカード（テンキーも可）
+    else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && /^[123]$/.test(ev.key || '')){ ev.preventDefault(); switchScreen(Number(ev.key)); }
+    else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && ((ev.keyCode >= 49 && ev.keyCode <= 51) || (ev.keyCode >= 97 && ev.keyCode <= 99))){ ev.preventDefault(); switchScreen(ev.keyCode % 48); }
     // Ctrl+R（再読み込み）などは邪魔しない
     else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && (ev.code === 'KeyR' || ev.key === 'r' || ev.key === 'R' || ev.keyCode === 82)){ ev.preventDefault(); clearHistory(); }
   });
@@ -786,7 +854,7 @@ function startEditor(){
     var t = state.entries[i]; state.entries[i] = state.entries[j]; state.entries[j] = t; buildList(); sync();
   }
 
-  // ---- 決定後の表示位置：数値入力＋ドラッグで動かせる位置調整プレビュー ----
+  // ---- ミニカード位置：数値入力＋ドラッグで動かせる位置調整プレビュー ----
   var PIN_LIMIT = {x:[0, CANVAS_W], y:[0, CANVAS_H], w:[20, CANVAS_W]};
   var pinInputs = {};
   function pinField(label, key){
@@ -1022,13 +1090,8 @@ function startEditor(){
     el('div', {className:'howto'}, [
       el('h2', {text:t('keysH')}),
       el('p', {className:'howto-note keys-note', text:t('keysNote')}),
-      el('dl', {className:'keys'}, [
-        [['Space'], 'keyDraw'], [['Enter'], 'keyDraw'], [['Esc'], 'keyBack'], [['R'], 'keyReset']
-      ].reduce(function(a, k){
-        a.push(el('dt', {}, k[0].map(function(n){ return el('kbd', {text:n}); })));
-        a.push(el('dd', {text:t(k[1])}));
-        return a;
-      }, []))
+      keyList('keysOpH', [[['Space'], 'keyDraw'], [['Enter'], 'keyDraw'], [['R'], 'keyReset']]),
+      keyList('keysScrH', [[['Esc'], 'keyBack'], [['1'], 'keyBack'], [['2'], 'keyResult'], [['3'], 'keyMini']])
     ]),
     el('div', {className:'ed-cols'}, [obsLeft, obsRight]),
     usage,
