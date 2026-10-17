@@ -349,7 +349,7 @@ function t(k){
   return String(s).replace(/\{(\d)\}/g, function(m, n){ return args[Number(n) + 1]; });
 }
 function charName(c){ return c.name[LANG] || c.name.ja; }
-var MAX_ENTRIES = 30;
+var MAX_ENTRIES = 100;
 var DURATION_MS = 4000; // 演出の長さは固定
 var CANVAS_W = 1920, CANVAS_H = 1080; // 表示サイズは固定
 var SCALE_MIN = 30, SCALE_MAX = 100;
@@ -497,15 +497,20 @@ function startDisplay(){
     var s = state.scale / 100;
     var W = CANVAS_W * 0.94 * s, H = CANVAS_H * 0.9 * s;
     if(stageBtn) H -= 200 * s; // ボタンの分だけ一覧の高さを空ける
-    var gap = Math.max(6, Math.min(W, H) * 0.06), best = 0, bestCols = 1;
+    var gap0 = Math.max(6, Math.min(W, H) * 0.06), R = 0.2, best = 0, bestCols = 1, bestGap = gap0;
     for(var cols=1; cols<=n; cols++){
-      var rows = Math.ceil(n/cols);
+      var rows = Math.ceil(n/cols), gap = gap0;
       var w = Math.min((W - gap*(cols-1))/cols, ((H - gap*(rows-1))/rows) * 0.75);
-      if(w > best){ best = w; bestCols = cols; }
+      // 枚数が多くてカードが小さいときは、間隔をカード幅のR倍まで詰める
+      if(gap > w * R){
+        w = Math.min(W / (cols + (cols-1)*R), H / (rows/0.75 + (rows-1)*R));
+        gap = Math.max(6, w * R);
+      }
+      if(w > best){ best = w; bestCols = cols; bestGap = gap; }
     }
     grid.style.setProperty('--cols', bestCols);
     grid.style.setProperty('--cw', Math.floor(best) + 'px');
-    grid.style.setProperty('--gap', Math.floor(gap) + 'px');
+    grid.style.setProperty('--gap', Math.floor(bestGap) + 'px');
   }
   layout();
   resultEl.style.setProperty('--rs', state.scale / 100);
