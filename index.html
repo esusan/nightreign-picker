@@ -174,7 +174,6 @@ body.edit{background:#0f0e14;font-size:14px}
 .scale-row{display:flex;align-items:center;gap:12px}
 .scale-row input[type=range]{flex:1;accent-color:var(--accent)}
 .scale-out{min-width:3.5em;text-align:right;font-variant-numeric:tabular-nums}
-.pin-block.disabled{opacity:.45;pointer-events:none}
 .pp-box{position:relative;width:100%;aspect-ratio:16/9;margin-top:10px;border:1px solid var(--line);border-radius:8px;overflow:hidden;
   background:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px) 0 0/10% 10%,linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px) 0 0/10% 10%,#000 url("img/pin-preview-bg.jpg") center/cover no-repeat}
 .pp-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform:scale(var(--k,.3));transform-origin:0 0}
@@ -281,8 +280,8 @@ var I18N = {
     scaleH:'カード一覧と結果画面の大きさ',
     scaleNote:'カード一覧と結果画面の大きさを、画面いっぱい（100%）を基準に縮小できます。「ミニカード」の大きさは変わりません。',
     bgH:'背景色', bgChk:'背景色を付ける', bgNote:'チェックを外しているときは背景が透過されます。',
-    pinH:'ミニカード', pinChk:'決定したキャラのミニカードを指定した位置に表示する',
-    pinNote:'結果画面を5秒表示した後、決定したキャラを小さなカードにして指定した位置に切り替えて表示します。位置は1920×1080の画面の左上を0としています。',
+    pinH:'ミニカード', pinChk:'結果画面の5秒後に自動でミニカードに切り替える',
+    pinNote:'決定したキャラを小さなカードにして、指定した位置に表示します。チェックを外していても、3キーで表示できます。位置は1920×1080の画面の左上を0としています。',
     btnH:'抽選ボタン', btnChk:'画面に「出撃する」「もう一度出撃」ボタンを表示する',
     btnNote:'ボタンは配信画面にも映ります。映したくない場合はチェックを外してください（ソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押すと抽選できます）。',
     autoH:'自動抽選',autoChk:'画面が表示されたら自動で抽選する',
@@ -304,7 +303,7 @@ var I18N = {
     keyBack:'カード一覧（抽選中なら取り消し）',
     keyHide:'すべて非表示',
     keyResult:'結果画面',
-    keyMini:'ミニカード（オプションがOFFでも初期位置に表示）',
+    keyMini:'ミニカード',
     keyReset:'「同じ結果の連続を避ける」の履歴をリセットする',
     usageH:'ご利用について',
     usageNote:'配信や動画で使う時に許可は不要です。ご自由にお使いください。',
@@ -347,8 +346,8 @@ var I18N = {
     scaleH:'Card List and Result Size',
     scaleNote:'Scales down the card list and the result screen, with 100% filling the screen. Does not change the size of the "Mini Card".',
     bgH:'Background Color', bgChk:'Use a background color', bgNote:'When unchecked, the background is transparent.',
-    pinH:'Mini Card', pinChk:'Show a mini card of the chosen Nightfarer at a set position',
-    pinNote:'After the result screen shows for 5 seconds, it switches to a small card of the chosen Nightfarer at the set position. Positions are measured from the top-left of a 1920×1080 screen.',
+    pinH:'Mini Card', pinChk:'Switch to the mini card automatically 5 seconds after the result screen',
+    pinNote:'Shows the chosen Nightfarer as a small card at the set position. Even when unchecked, you can show it with the 3 key. Positions are measured from the top-left of a 1920×1080 screen.',
     btnH:'Draw Button', btnChk:'Show the "Draw" and "Draw Again" buttons on screen',
     btnNote:'The button also appears on stream. To hide it, uncheck this (you can still draw by right-clicking the source → "Interact", clicking the screen, and pressing Space).',
     autoH:'Auto Draw', autoChk:'Draw automatically when the screen is shown',
@@ -370,7 +369,7 @@ var I18N = {
     keyBack:'Card List (cancels a draw in progress)',
     keyHide:'Hide All',
     keyResult:'Result Screen',
-    keyMini:'Mini Card (uses the default position if the option is off)',
+    keyMini:'Mini Card',
     keyReset:'Reset the "Avoid Repeats" history',
     usageH:'Usage',
     usageNote:'No permission is needed to use this tool on streams or in videos. Feel free to use it.',
@@ -413,8 +412,14 @@ function bgCss(bg){
 }
 
 // ---------- URLとの相互変換（設定はすべて ?d= に入る） ----------
+// ミニカード：自動切り替えONなら [X, Y, 幅]、OFFで位置を変えていれば [X, Y, 幅, 0]、OFFで初期位置なら 0
+function pinParam(p){
+  if(p.on) return [p.x, p.y, p.w];
+  var d = DEFAULT.pin;
+  return p.x === d.x && p.y === d.y && p.w === d.w ? 0 : [p.x, p.y, p.w, 0];
+}
 function encode(st){
-  var o = {v:1, l:st.lang, a:st.autoStart?1:0, k:st.button?1:0, m:st.sound.on ? st.sound.vol : 0, z:st.scale, r:st.noRepeat, b:st.bg.on ? bgCss(st.bg) : 0, p:st.pin.on ? [st.pin.x, st.pin.y, st.pin.w] : 0,
+  var o = {v:1, l:st.lang, a:st.autoStart?1:0, k:st.button?1:0, m:st.sound.on ? st.sound.vol : 0, z:st.scale, r:st.noRepeat, b:st.bg.on ? bgCss(st.bg) : 0, p:pinParam(st.pin),
     e:st.entries.map(function(e){ return [e.concept, e.charId, e.enabled?1:0]; })};
   var bytes = new TextEncoder().encode(JSON.stringify(o)), bin = '';
   bytes.forEach(function(b){ bin += String.fromCharCode(b); });
@@ -438,7 +443,7 @@ function decode(str){
         ? {on:true, color:o.b.slice(0,7), alpha:o.b.length === 9 ? Math.round(parseInt(o.b.slice(7), 16) / 255 * 100) : 100}
         // b:0 は明示的にOFF。bが無い古いURLは初期値（ON）
         : {on:o.b === undefined ? DEFAULT.bg.on : false, color:DEFAULT.bg.color, alpha:DEFAULT.bg.alpha},
-      pin: Array.isArray(o.p) ? {on:true, x:Number(o.p[0])||0, y:Number(o.p[1])||0, w:Number(o.p[2])||DEFAULT.pin.w} : JSON.parse(JSON.stringify(DEFAULT.pin)),
+      pin: Array.isArray(o.p) ? {on:o.p[3] !== 0, x:Number(o.p[0])||0, y:Number(o.p[1])||0, w:Number(o.p[2])||DEFAULT.pin.w} : JSON.parse(JSON.stringify(DEFAULT.pin)),
       entries: (o.e || []).slice(0, MAX_ENTRIES).map(function(x){ return {concept:String(x[0]||''), charId:String(x[1]||''), enabled:!!x[2]}; })
     };
   }catch(e){ return null; }
@@ -764,7 +769,7 @@ function startDisplay(){
     resultEl.classList.add('show');
     if(auto && state.pin.on) pinTimer = setTimeout(function(){ pinWinner(i); }, PIN_DELAY_MS);
   }
-  // 3キーでミニカードを出す。オプションがOFFのときは state.pin に初期位置が入っている
+  // 3キーでミニカードを出す。自動切り替えがOFFでも、設定した位置（無ければ初期位置）に出す
   function showMini(i){
     canvas.classList.remove('hidden');
     if(pinEl) return;
@@ -939,7 +944,8 @@ function startEditor(){
     pinCard.addEventListener('pointerup', onUp);
     pinCard.addEventListener('pointercancel', onUp);
   });
-  var pinFields = el('div', {className:'pin-block' + (state.pin.on ? '' : ' disabled')}, [
+  // 位置は3キーでも使うので、自動切り替えのON/OFFに関係なく編集できる
+  var pinFields = el('div', {className:'pin-block'}, [
     el('div', {className:'pin-fields'}, [
       pinField(t('pinX'), 'x'),
       pinField(t('pinY'), 'y'),
@@ -1023,7 +1029,7 @@ function startEditor(){
       ]),
       el('div', {className:'opt'}, [
         el('h3', {text:t('pinH')}),
-        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.pin.on, onchange:function(){ state.pin.on = this.checked; pinFields.classList.toggle('disabled', !state.pin.on); sync(); }}), t('pinChk')]),
+        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.pin.on, onchange:function(){ state.pin.on = this.checked; sync(); }}), t('pinChk')]),
         el('p', {className:'ed-note', text:t('pinNote')}),
         pinFields
       ]),
