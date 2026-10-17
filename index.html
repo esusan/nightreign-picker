@@ -114,6 +114,9 @@ body.edit{background:#0f0e14;font-size:14px}
 #bg{position:fixed;inset:0;transition:opacity .6s}
 #bg.off{opacity:0}
 #canvas.pinned #stage,#canvas.pinned #result{opacity:0}
+/* 0キーで全部非表示（背景も消す） */
+#canvas.hidden #stage,#canvas.hidden #result{opacity:0}
+#canvas.hidden .draw-btn{pointer-events:none}
 .pin{position:absolute;opacity:0;transition:opacity .6s;border-color:rgba(185,198,236,.18)}
 .pin.show{opacity:1}
 /* ミニカード：上の見出しの段を削って正方形にし、コンセプトだけを画像の上部に重ねる（文字の後ろは上から暗くするグラデーション） */
@@ -250,7 +253,7 @@ var I18N = {
     heading:'ナイトレイン キャラランダムツール',
     lead:'次に出撃するキャラを抽選するツール。OBSのブラウザソースとしても使えます',
     empty:'抽選対象がありません',
-    draw:'出撃',
+    draw:'出撃する',
     again:'もう一度出撃',
     next:'次の出撃',
     preview:'プレビュー',
@@ -276,20 +279,20 @@ var I18N = {
     openDefault:'初期設定のページを開く',
     optH:'オプション',
     scaleH:'カード一覧と結果画面の大きさ',
-    scaleNote:'カード一覧と結果画面の大きさを、画面いっぱい（100%）を基準に縮小できます。「ミニカード」のカードの大きさは変わりません。',
+    scaleNote:'カード一覧と結果画面の大きさを、画面いっぱい（100%）を基準に縮小できます。「ミニカード」の大きさは変わりません。',
     bgH:'背景色', bgChk:'背景色を付ける', bgNote:'チェックを外しているときは背景が透過されます。',
     pinH:'ミニカード', pinChk:'決定したキャラのミニカードを指定した位置に表示する',
     pinNote:'結果画面を5秒表示した後、決定したキャラを小さなカードにして指定した位置に切り替えて表示します。位置は1920×1080の画面の左上を0としています。',
-    btnH:'抽選ボタン', btnChk:'画面に「出撃」ボタンを表示する',
+    btnH:'抽選ボタン', btnChk:'画面に「出撃する」「もう一度出撃」ボタンを表示する',
     btnNote:'ボタンは配信画面にも映ります。映したくない場合はチェックを外してください（ソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押すと抽選できます）。',
-    autoH:'自動で抽選する', autoChk:'画面が表示されたら自動で抽選する',
+    autoH:'自動抽選',autoChk:'画面が表示されたら自動で抽選する',
     autoNote:'ページを開いたときや、シーンを切り替えたりソースを表示し直したりしたときに、自動で抽選が始まります。',
     soundH:'効果音', soundChk:'効果音を鳴らす', volume:'音量',
     urlH:'抽選画面のURL', copy:'コピー', copied:'抽選画面のURLをコピーしました',
     howtoH:'OBSでの使い方',
     step1:'必要に応じて下の「オプション」を設定してから、「抽選画面のURL」の「コピー」を押してください。',
     step2:'OBSで「ソース」→「ブラウザ」を追加し、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。',
-    step3:'抽選するときは、ソースを右クリック→「対話」を開き、「出撃」ボタンを押すか、画面をクリックしてからSpaceキーを押してください。「自動で抽選する」にチェックを入れると、シーンを切り替えたりソースを表示し直したりするたびに自動で抽選されます。',
+    step3:'抽選するときは、ソースを右クリック→「対話」を開き、「出撃する」ボタンを押すか、画面をクリックしてからSpaceキーを押してください。「自動抽選」にチェックを入れると、シーンを切り替えたりソースを表示し直したりするたびに自動で抽選されます。',
     howtoNote:'※設定を変えるとURLも変わるため、OBS側のURLも貼り直してください。',
     soundCase1H:'デスクトップ音声を配信に乗せている場合', soundCase1:'そのままで効果音も乗ります。',
     soundCase2H:'デスクトップ音声を配信に乗せていない場合',
@@ -298,9 +301,10 @@ var I18N = {
     keysNote:'OBSではソースを右クリック→「対話」を開き、画面をクリックしてから押してください。',
     keysOpH:'操作', keysScrH:'画面の切り替え',
     keyDraw:'抽選する',
-    keyBack:'抽選前の一覧に戻す（抽選中なら取り消し）',
-    keyResult:'直前の抽選の結果画面を表示する',
-    keyMini:'直前の抽選のミニカードを表示する（オプションがOFFでも初期位置に表示）',
+    keyBack:'カード一覧（抽選中なら取り消し）',
+    keyHide:'すべて非表示',
+    keyResult:'結果画面',
+    keyMini:'ミニカード（オプションがOFFでも初期位置に表示）',
     keyReset:'「同じ結果の連続を避ける」の履歴をリセットする',
     usageH:'ご利用について',
     usageNote:'配信や動画で使う時に許可は不要です。ご自由にお使いください。',
@@ -341,11 +345,11 @@ var I18N = {
     openDefault:'Open with Default Settings',
     optH:'Options',
     scaleH:'Card List and Result Size',
-    scaleNote:'Scales down the card list and the result screen, with 100% filling the screen. Does not change the card size in "Mini Card".',
+    scaleNote:'Scales down the card list and the result screen, with 100% filling the screen. Does not change the size of the "Mini Card".',
     bgH:'Background Color', bgChk:'Use a background color', bgNote:'When unchecked, the background is transparent.',
     pinH:'Mini Card', pinChk:'Show a mini card of the chosen Nightfarer at a set position',
     pinNote:'After the result screen shows for 5 seconds, it switches to a small card of the chosen Nightfarer at the set position. Positions are measured from the top-left of a 1920×1080 screen.',
-    btnH:'Draw Button', btnChk:'Show the "Draw" button on screen',
+    btnH:'Draw Button', btnChk:'Show the "Draw" and "Draw Again" buttons on screen',
     btnNote:'The button also appears on stream. To hide it, uncheck this (you can still draw by right-clicking the source → "Interact", clicking the screen, and pressing Space).',
     autoH:'Auto Draw', autoChk:'Draw automatically when the screen is shown',
     autoNote:'A draw starts automatically when the page opens, when you switch scenes, or when you show the source again.',
@@ -363,9 +367,10 @@ var I18N = {
     keysNote:'In OBS, right-click the source → "Interact", click the screen, then press the key.',
     keysOpH:'Controls', keysScrH:'Switch Screens',
     keyDraw:'Draw',
-    keyBack:'Back to the card list (cancels a draw in progress)',
-    keyResult:'Show the result screen for the last draw',
-    keyMini:'Show the mini card for the last draw (uses the default position if the option is off)',
+    keyBack:'Card List (cancels a draw in progress)',
+    keyHide:'Hide All',
+    keyResult:'Result Screen',
+    keyMini:'Mini Card (uses the default position if the option is off)',
     keyReset:'Reset the "Avoid Repeats" history',
     usageH:'Usage',
     usageNote:'No permission is needed to use this tool on streams or in videos. Feel free to use it.',
@@ -652,9 +657,10 @@ function startDisplay(){
       seSrc[n] = null;
     });
   }
+  // ミニカードを消す（0キーの全部非表示も解除して、背景を戻す）
   function unpin(){
     clearTimeout(pinTimer); pinTimer = null;
-    canvas.classList.remove('pinned');
+    canvas.classList.remove('pinned', 'hidden');
     if(bgEl) bgEl.classList.remove('off');
     if(pinEl){ pinEl.remove(); pinEl = null; }
   }
@@ -760,12 +766,24 @@ function startDisplay(){
   }
   // 3キーでミニカードを出す。オプションがOFFのときは state.pin に初期位置が入っている
   function showMini(i){
+    canvas.classList.remove('hidden');
     if(pinEl) return;
     clearTimeout(pinTimer); pinTimer = null;
     pinWinner(i);
   }
-  // 1・2・3キーでの画面切り替え。結果画面とミニカードは直前の抽選結果を出す（抽選中・まだ抽選していないときは何もしない）
+  // 0キーで全部（背景も）非表示にする。抽選前の状態に戻してから消すので、ほかのキーやボタンで戻せる
+  // ミニカードから消したときに一覧や背景が一瞬戻って見えないよう、Escと同じく即座に切り替える
+  function hideAll(){
+    reset();
+    document.body.classList.add('instant');
+    canvas.classList.add('hidden');
+    if(bgEl) bgEl.classList.add('off');
+    void document.body.offsetHeight;
+    document.body.classList.remove('instant');
+  }
+  // 0〜3キーでの画面切り替え。結果画面とミニカードは直前の抽選結果を出す（抽選中・まだ抽選していないときは何もしない）
   function switchScreen(n){
+    if(n === 0){ hideAll(); return; }
     if(n === 1){ reset(); return; }
     if(running || lastWin < 0) return;
     if(n === 2) showResult(lastWin, false);
@@ -777,9 +795,10 @@ function startDisplay(){
     if(ev.code === 'Space' || ev.code === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar' || ev.key === 'Enter' || ev.keyCode === 32 || ev.keyCode === 13){ ev.preventDefault(); draw(); }
     // Escで抽選前の一覧に戻す（抽選中なら取り消し、ミニカードも消す）
     else if(ev.code === 'Escape' || ev.key === 'Escape' || ev.key === 'Esc' || ev.keyCode === 27){ ev.preventDefault(); reset(); }
-    // 1＝抽選前の一覧、2＝結果画面、3＝ミニカード（テンキーも可）
-    else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && /^[123]$/.test(ev.key || '')){ ev.preventDefault(); switchScreen(Number(ev.key)); }
-    else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && ((ev.keyCode >= 49 && ev.keyCode <= 51) || (ev.keyCode >= 97 && ev.keyCode <= 99))){ ev.preventDefault(); switchScreen(ev.keyCode % 48); }
+    // 0＝全部非表示、1＝抽選前の一覧、2＝結果画面、3＝ミニカード（テンキーも可）
+    else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && /^[0-3]$/.test(ev.key || '')){ ev.preventDefault(); switchScreen(Number(ev.key)); }
+    // keyCodeはShift+数字（!や"）でも同じ値になるので、ev.keyが取れないときだけ使う
+    else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && (!ev.key || ev.key === 'Unidentified') && ((ev.keyCode >= 48 && ev.keyCode <= 51) || (ev.keyCode >= 96 && ev.keyCode <= 99))){ ev.preventDefault(); switchScreen(ev.keyCode % 48); }
     // Ctrl+R（再読み込み）などは邪魔しない
     else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && (ev.code === 'KeyR' || ev.key === 'r' || ev.key === 'R' || ev.keyCode === 82)){ ev.preventDefault(); clearHistory(); }
   });
@@ -1091,7 +1110,7 @@ function startEditor(){
       el('h2', {text:t('keysH')}),
       el('p', {className:'howto-note keys-note', text:t('keysNote')}),
       keyList('keysOpH', [[['Space'], 'keyDraw'], [['Enter'], 'keyDraw'], [['R'], 'keyReset']]),
-      keyList('keysScrH', [[['Esc'], 'keyBack'], [['1'], 'keyBack'], [['2'], 'keyResult'], [['3'], 'keyMini']])
+      keyList('keysScrH', [[['Esc'], 'keyBack'], [['1'], 'keyBack'], [['2'], 'keyResult'], [['3'], 'keyMini'], [['0'], 'keyHide']])
     ]),
     el('div', {className:'ed-cols'}, [obsLeft, obsRight]),
     usage,
