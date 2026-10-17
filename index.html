@@ -135,15 +135,10 @@ body.edit{background:#0f0e14;font-size:14px}
 .social:hover{color:var(--gold);border-color:var(--gold)}
 .ed-foot{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;line-height:1.8}
 .ed-foot p{margin:12px 0 0}
-.foot-links{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:36px}
-.foot-links + .foot-links{margin-top:8px}
-.foot-label{width:8em;box-sizing:border-box;text-align:center;padding:2px 8px;font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:4px}
+.foot-links{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:36px}.foot-label{width:8em;box-sizing:border-box;text-align:center;padding:2px 8px;font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:4px}
 .foot-name{color:var(--text);font-size:13.5px}
 .ed-foot .social{width:30px;height:30px}
-.ed-foot .social svg{width:16px;height:16px}
-.foot-link{color:var(--text);font-size:13.5px;text-decoration:none;border-bottom:1px solid var(--line);transition:color .2s,border-color .2s}
-.foot-link:hover{color:var(--gold);border-color:var(--gold)}
-.ed-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.ed-foot .social svg{width:16px;height:16px}.ed-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
 .ed-cols.wide-left{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}
 @media (max-width:860px){.ed-cols,.ed-cols.wide-left{grid-template-columns:1fr}}
 .ed-wrap h2{font-size:16px;margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);color:var(--accent);font-weight:700}
@@ -274,9 +269,7 @@ var I18N = {
     step2:'OBSで「ソース」→「ブラウザ」を追加し、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。',
     step3:'抽選するときは、ソースを右クリック→「対話」を開き、「抽選する」ボタンを押すか、画面をクリックしてからSpaceキーを押してください。「自動で抽選する」にチェックを入れると、シーンを切り替えたりソースを表示し直したりするたびに自動で抽選されます。',
     howtoNote:'※設定を変えるとURLも変わるため、OBS側のURLも貼り直してください。',
-    author:'作成者', authorName:'えすさん',
-    others:'ほかのツール', dictLink:'ナイトレイン辞書（わんコメの読み上げ用ユーザー辞書）',
-    disclaimer:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'
+    author:'作成者', authorName:'えすさん',    disclaimer:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'
   },
   en:{
     title:'NIGHTREIGN Random Nightfarer Picker (OBS Ready)',
@@ -322,9 +315,7 @@ var I18N = {
     step2:'In OBS, add a "Browser" source under "Sources" and paste the URL. Set the width to 1920 and the height to 1080.',
     step3:'To draw, right-click the source → "Interact", then click the "Draw" button, or click the screen and press Space. With "Auto Draw" checked, a draw runs every time you switch scenes or show the source again.',
     howtoNote:'* Changing settings also changes the URL, so paste the new URL into OBS again.',
-    author:'Created by', authorName:'esusan',
-    others:'Other Tools', dictLink:'Nightreign Dictionary (Japanese text-to-speech dictionary for OneComme)',
-    disclaimer:'* This is an unofficial fan tool, not affiliated with the game\'s developer or publisher. Game images are the property of their respective owners.'
+    author:'Created by', authorName:'esusan',    disclaimer:'* This is an unofficial fan tool, not affiliated with the game\'s developer or publisher. Game images are the property of their respective owners.'
   }
 };
 var LANG = 'ja';
@@ -894,10 +885,6 @@ function startEditor(){
         el('span', {className:'foot-label', text:t('author')}),
         el('span', {className:'foot-name', text:t('authorName')}),
         xLink, ytLink
-      ]),
-      el('div', {className:'foot-links'}, [
-        el('span', {className:'foot-label', text:t('others')}),
-        el('a', {className:'foot-link', href:'https://github.com/esusan/nightreign-dict', target:'_blank', rel:'noopener noreferrer', text:t('dictLink')})
       ]),
       el('p', {text:t('disclaimer')})
     ])
