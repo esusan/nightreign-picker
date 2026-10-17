@@ -379,6 +379,7 @@ var DURATION_MS = 4000; // 演出の長さは固定
 var CANVAS_W = 1920, CANVAS_H = 1080; // 表示サイズは固定
 var SCALE_MIN = 30, SCALE_MAX = 100;
 var PIN_DELAY_MS = 5000; // 結果画面を見せてから指定位置表示に切り替えるまで
+var SOUND_ENABLED = false; // 効果音はOBSでブチブチ鳴る問題が解決するまで止めている（オプションも出さない）
 var DEFAULT = {
   autoStart:false, // ブラウザで使うのが基本なので手動抽選が初期値（OBSでシーン切替に合わせたいときにON）
   button:true, // 画面に「抽選する」ボタンを出す
@@ -580,16 +581,35 @@ function startDisplay(){
   }
   function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
   // 効果音（効果音ラボ）。抽選中は心臓の鼓動、決定して結果画面に切り替わるときに「シーン切り替え2」
-  var se = state.sound.on ? {beat:new Audio('se/heartbeat.mp3'), decide:new Audio('se/decide.mp3')} : null;
-  if(se) Object.keys(se).forEach(function(k){ se[k].volume = state.sound.vol / 100; });
-  function playSe(k){
-    if(!se) return;
-    se[k].currentTime = 0;
-    var p = se[k].play();
-    if(p && p.catch) p.catch(function(){}); // ユーザー操作なしの自動抽選はブラウザに止められることがある
+  // OBSで<audio>を鳴らすと途切れてブチブチ鳴ることがあるので、Web Audioで開いた時点に全部デコードしておき、メモリから鳴らす
+  var AC = window.AudioContext || window.webkitAudioContext;
+  var actx = SOUND_ENABLED && state.sound.on && AC ? new AC() : null, gain = null, seBuf = {}, seSrc = {};
+  if(actx){
+    gain = actx.createGain();
+    gain.gain.value = state.sound.vol / 100;
+    gain.connect(actx.destination);
+    [['beat', 'se/heartbeat.mp3'], ['decide', 'se/decide.mp3']].forEach(function(s){
+      fetch(s[1]).then(function(r){ return r.arrayBuffer(); })
+        .then(function(ab){ actx.decodeAudioData(ab, function(buf){ seBuf[s[0]] = buf; }, function(){}); })
+        .catch(function(){});
+    });
   }
-  function stopSe(){
-    if(se) Object.keys(se).forEach(function(k){ se[k].pause(); se[k].currentTime = 0; });
+  function playSe(k){
+    if(!actx || !seBuf[k]) return;
+    // ユーザー操作なしの自動抽選では、ブラウザが再開を許さず鳴らないことがある
+    if(actx.state === 'suspended') actx.resume().catch(function(){});
+    stopSe(k);
+    var src = actx.createBufferSource();
+    src.buffer = seBuf[k];
+    src.connect(gain);
+    src.start();
+    seSrc[k] = src;
+  }
+  // kを省略するとすべて止める
+  function stopSe(k){
+    (k ? [k] : Object.keys(seSrc)).forEach(function(n){
+      if(seSrc[n]){ try{ seSrc[n].stop(); }catch(e){} seSrc[n] = null; }
+    });
   }
   function unpin(){
     clearTimeout(pinTimer); pinTimer = null;
@@ -930,7 +950,7 @@ function startEditor(){
         el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.autoStart, onchange:function(){ state.autoStart = this.checked; sync(); }}), t('autoChk')]),
         el('p', {className:'ed-note', text:t('autoNote')})
       ]),
-      el('div', {className:'opt'}, [
+      !SOUND_ENABLED ? null : el('div', {className:'opt'}, [
         el('h3', {text:t('soundH')}),
         el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.sound.on, onchange:function(){ state.sound.on = this.checked; volControls.classList.toggle('disabled', !state.sound.on); sync(); }}), t('soundChk')]),
         volControls,
