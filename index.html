@@ -158,6 +158,9 @@ body.edit{background:#0f0e14;font-size:14px}
 .opt + .opt{border-top:1px solid var(--line)}
 .opt h3{font-size:14px;margin:0 0 8px;color:var(--text);font-weight:700}
 .opt .ed-note:last-child{margin-bottom:0}
+.sound-cases{margin-top:10px}
+.sound-cases .ed-note{margin:0 0 8px}
+.case-h{display:block;color:var(--text);font-weight:700}
 .bg-row{display:flex;align-items:center;gap:12px}
 .bg-row input[type=color]{width:44px;height:30px;padding:0 2px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;cursor:pointer}
 .radios{display:flex;flex-direction:column;gap:6px}
@@ -279,12 +282,16 @@ var I18N = {
     btnNote:'ボタンは配信画面にも映ります。映したくない場合はチェックを外してください（ソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押すと抽選できます）。',
     autoH:'自動で抽選する', autoChk:'画面が表示されたら自動で抽選する',
     autoNote:'ページを開いたときや、シーンを切り替えたりソースを表示し直したりしたときに、自動で抽選が始まります。',
+    soundH:'効果音', soundChk:'効果音を鳴らす', volume:'音量',
     urlH:'抽選画面のURL', copy:'コピー', copied:'抽選画面のURLをコピーしました',
     howtoH:'OBSでの使い方',
     step1:'必要に応じて下の「オプション」を設定してから、「抽選画面のURL」の「コピー」を押してください。',
     step2:'OBSで「ソース」→「ブラウザ」を追加し、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。',
     step3:'抽選するときは、ソースを右クリック→「対話」を開き、「出撃」ボタンを押すか、画面をクリックしてからSpaceキーを押してください。「自動で抽選する」にチェックを入れると、シーンを切り替えたりソースを表示し直したりするたびに自動で抽選されます。',
     howtoNote:'※設定を変えるとURLも変わるため、OBS側のURLも貼り直してください。',
+    soundCase1H:'デスクトップ音声を配信に乗せている場合', soundCase1:'そのままで効果音も乗ります。',
+    soundCase2H:'デスクトップ音声を配信に乗せていない場合',
+    soundCase2:'ソースのプロパティで「OBSで音声を制御する」にチェックを入れてください。自分にも聞こえるようにするには、音声ミキサーの「オーディオの詳細プロパティ」で、このソースの音声モニタリングを「モニターと出力」にしてください。',
     keysH:'ショートカットキー',
     keysNote:'OBSではソースを右クリック→「対話」を開き、画面をクリックしてから押してください。',
     keyDraw:'抽選する',
@@ -293,8 +300,8 @@ var I18N = {
     usageH:'ご利用について',
     usageNote:'配信や動画で使う時に許可は不要です。ご自由にお使いください。',
     creditNote:'必須ではありませんが、概要欄などでこのページを紹介してもらえると嬉しいです。',
-    creditLabel:'記載例', creditText:'ナイトレイン キャラランダムツール',
-    copiedCredit:'記載例をコピーしました',
+    creditText:'ナイトレイン キャラランダムツール',
+    copiedCredit:'紹介文をコピーしました',
     author:'作成者', authorName:'えすさん',
     disclaimer:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'
   },
@@ -337,12 +344,16 @@ var I18N = {
     btnNote:'The button also appears on stream. To hide it, uncheck this (you can still draw by right-clicking the source → "Interact", clicking the screen, and pressing Space).',
     autoH:'Auto Draw', autoChk:'Draw automatically when the screen is shown',
     autoNote:'A draw starts automatically when the page opens, when you switch scenes, or when you show the source again.',
+    soundH:'Sound Effects', soundChk:'Play sound effects', volume:'Volume',
     urlH:'Picker Screen URL', copy:'Copy', copied:'Copied the picker screen URL',
     howtoH:'Using with OBS',
     step1:'Set the "Options" below if needed, then click "Copy" under "Picker Screen URL".',
     step2:'In OBS, add a "Browser" source under "Sources" and paste the URL. Set the width to 1920 and the height to 1080.',
     step3:'To draw, right-click the source → "Interact", then click the "Draw" button, or click the screen and press Space. With "Auto Draw" checked, a draw runs every time you switch scenes or show the source again.',
     howtoNote:'* Changing settings also changes the URL, so paste the new URL into OBS again.',
+    soundCase1H:'If you capture Desktop Audio on stream', soundCase1:'The sound effects reach your stream as is.',
+    soundCase2H:'If you don\'t capture Desktop Audio on stream',
+    soundCase2:'Check "Control audio via OBS" in the source properties. To hear them yourself as well, open "Advanced Audio Properties" in the Audio Mixer and set this source\'s Audio Monitoring to "Monitor and Output".',
     keysH:'Keyboard Shortcuts',
     keysNote:'In OBS, right-click the source → "Interact", click the screen, then press the key.',
     keyDraw:'Draw',
@@ -351,7 +362,7 @@ var I18N = {
     usageH:'Usage',
     usageNote:'No permission is needed to use this tool on streams or in videos. Feel free to use it.',
     creditNote:'Not required, but I\'d be happy if you shared this page in your stream or video description.',
-    creditLabel:'Example', creditText:'NIGHTREIGN Random Nightfarer Picker',
+    creditText:'NIGHTREIGN Random Nightfarer Picker',
     copiedCredit:'Copied the example text',
     author:'Created by', authorName:'esusan',
     disclaimer:'* This is an unofficial fan tool, not affiliated with the game\'s developer or publisher. Game images are the property of their respective owners.'
@@ -371,6 +382,7 @@ var PIN_DELAY_MS = 5000; // 結果画面を見せてから指定位置表示に�
 var DEFAULT = {
   autoStart:false, // ブラウザで使うのが基本なので手動抽選が初期値（OBSでシーン切替に合わせたいときにON）
   button:true, // 画面に「抽選する」ボタンを出す
+  sound:{on:false, vol:15}, // 効果音（抽選中の鼓動・決定時の音）と音量%
   scale:95, // 抽選画面（カード一覧と結果）の大きさ（%）
   noRepeat:0, // 連続を避ける：0=しない 1=前回と同じものは出さない 2=全部出るまで同じものは出さない
   bg:{on:true, color:'#000000', alpha:80}, // 抽選画面の背景色と不透明度%（OFFなら透過）
@@ -388,7 +400,7 @@ function bgCss(bg){
 
 // ---------- URLとの相互変換（設定はすべて ?d= に入る） ----------
 function encode(st){
-  var o = {v:1, l:st.lang, a:st.autoStart?1:0, k:st.button?1:0, z:st.scale, r:st.noRepeat, b:st.bg.on ? bgCss(st.bg) : 0, p:st.pin.on ? [st.pin.x, st.pin.y, st.pin.w] : 0,
+  var o = {v:1, l:st.lang, a:st.autoStart?1:0, k:st.button?1:0, m:st.sound.on ? st.sound.vol : 0, z:st.scale, r:st.noRepeat, b:st.bg.on ? bgCss(st.bg) : 0, p:st.pin.on ? [st.pin.x, st.pin.y, st.pin.w] : 0,
     e:st.entries.map(function(e){ return [e.concept, e.charId, e.enabled?1:0]; })};
   var bytes = new TextEncoder().encode(JSON.stringify(o)), bin = '';
   bytes.forEach(function(b){ bin += String.fromCharCode(b); });
@@ -404,6 +416,8 @@ function decode(str){
       lang: o.l === 'en' ? 'en' : 'ja', // lが無い古いURLは日本語
       autoStart: !!o.a,
       button: o.k === undefined ? DEFAULT.button : !!o.k, // kが無い古いURLは初期値（ON）
+      // m：0か無しならOFF、1〜100なら音量%でON
+      sound: o.m >= 1 && o.m <= 100 ? {on:true, vol:Math.round(o.m)} : {on:false, vol:DEFAULT.sound.vol},
       scale: Math.min(SCALE_MAX, Math.max(SCALE_MIN, Number(o.z) || DEFAULT.scale)),
       noRepeat: [0, 1, 2].indexOf(o.r) >= 0 ? o.r : DEFAULT.noRepeat,
       bg: /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(o.b)
@@ -565,6 +579,18 @@ function startDisplay(){
     cells.forEach(function(c, i){ c.classList.toggle('out', cand.indexOf(i) < 0); });
   }
   function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
+  // 効果音（効果音ラボ）。抽選中は心臓の鼓動、決定して結果画面に切り替わるときに「シーン切り替え2」
+  var se = state.sound.on ? {beat:new Audio('se/heartbeat.mp3'), decide:new Audio('se/decide.mp3')} : null;
+  if(se) Object.keys(se).forEach(function(k){ se[k].volume = state.sound.vol / 100; });
+  function playSe(k){
+    if(!se) return;
+    se[k].currentTime = 0;
+    var p = se[k].play();
+    if(p && p.catch) p.catch(function(){}); // ユーザー操作なしの自動抽選はブラウザに止められることがある
+  }
+  function stopSe(){
+    if(se) Object.keys(se).forEach(function(k){ se[k].pause(); se[k].currentTime = 0; });
+  }
   function unpin(){
     clearTimeout(pinTimer); pinTimer = null;
     canvas.classList.remove('pinned');
@@ -574,6 +600,7 @@ function startDisplay(){
   // 抽選前の状態に戻す（途中の演出も止める）。アニメーションなしで即座に切り替える
   function reset(){
     timers.forEach(clearTimeout); timers = [];
+    stopSe();
     running = false; lastDrawAt = 0;
     stage.classList.remove('running');
     document.body.classList.add('instant');
@@ -604,6 +631,7 @@ function startDisplay(){
     var now = Date.now();
     if(running || !cells.length || now - lastDrawAt < 800) return;
     running = true; lastDrawAt = now;
+    stopSe(); playSe('beat');
     stage.classList.add('running');
     unpin();
     stage.classList.remove('done'); resultEl.classList.remove('show');
@@ -637,6 +665,7 @@ function startDisplay(){
   }
   function finish(i){
     recordWinner(i);
+    playSe('decide');
     cells[i].classList.remove('on'); cells[i].classList.add('win');
     stage.classList.add('done');
     // 当選カードを複製して中央に大きく出す
@@ -822,6 +851,13 @@ function startEditor(){
   var bgAlpha = el('input', {type:'range', min:0, max:100, step:5, value:state.bg.alpha, oninput:function(){
     state.bg.alpha = Number(this.value); bgAlphaOut.textContent = state.bg.alpha + '%'; sync();
   }});
+  var volOut = el('span', {className:'scale-out', text:state.sound.vol + '%'});
+  var volControls = el('div', {className:'bg-controls' + (state.sound.on ? '' : ' disabled')}, [
+    el('div', {className:'scale-row'}, [el('span', {className:'bg-label', text:t('volume')}),
+      el('input', {type:'range', min:5, max:100, step:5, value:state.sound.vol, oninput:function(){
+        state.sound.vol = Number(this.value); volOut.textContent = state.sound.vol + '%'; sync();
+      }}), volOut])
+  ]);
   var bgControls = el('div', {className:'bg-controls' + (state.bg.on ? '' : ' disabled')}, [
     el('div', {className:'bg-row'}, [el('span', {className:'bg-label', text:t('color')}), bgPicker]),
     el('div', {className:'scale-row'}, [el('span', {className:'bg-label', text:t('alpha')}), bgAlpha, bgAlphaOut])
@@ -893,6 +929,16 @@ function startEditor(){
         el('h3', {text:t('autoH')}),
         el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.autoStart, onchange:function(){ state.autoStart = this.checked; sync(); }}), t('autoChk')]),
         el('p', {className:'ed-note', text:t('autoNote')})
+      ]),
+      el('div', {className:'opt'}, [
+        el('h3', {text:t('soundH')}),
+        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.sound.on, onchange:function(){ state.sound.on = this.checked; volControls.classList.toggle('disabled', !state.sound.on); sync(); }}), t('soundChk')]),
+        volControls,
+        // OBSでの音の出し方。デスクトップ音声を使っているかどうかで手順が変わる
+        el('div', {className:'sound-cases'}, [
+          el('p', {className:'ed-note'}, [el('span', {className:'case-h', text:t('soundCase1H')}), t('soundCase1')]),
+          el('p', {className:'ed-note'}, [el('span', {className:'case-h', text:t('soundCase2H')}), t('soundCase2')])
+        ])
       ])
     ])
   ]);
@@ -923,11 +969,8 @@ function startEditor(){
     el('h2', {text:t('usageH')}),
     el('p', {className:'ed-note', text:t('usageNote')}),
     el('p', {className:'ed-note', text:t('creditNote')}),
-    el('div', {className:'field'}, [
-      el('label', {text:t('creditLabel')}),
-      el('div', {className:'urlbox'}, [creditInput,
-        el('button', {className:'b primary', text:t('copy'), onclick:function(){ copy(creditInput, t('copiedCredit')); }})])
-    ])
+    el('div', {className:'urlbox'}, [creditInput,
+      el('button', {className:'b primary', text:t('copy'), onclick:function(){ copy(creditInput, t('copiedCredit')); }})])
   ]);
 
   // 言語切替。設定はすべてURLに入っているので、言語を変えたURLで開き直すだけでよい
