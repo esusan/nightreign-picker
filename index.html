@@ -16,7 +16,7 @@
 <link rel="icon" href="img/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700&family=Noto+Serif+JP:wght@500;700&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --gold:#b9c6ec;
@@ -33,6 +33,11 @@
   --font:"LINE Seed JP","Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif; /* 編集画面。遺物ページと同じ */
   --font-display:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif; /* 抽選画面。ゲームに合わせて明朝 */
 }
+/* 英語版の抽選画面は英字用のセリフ体を先に当てる（明朝の英字は細くて地味なため）。
+   langはブラウザの翻訳で書き換わるので、専用のdata-langで判定する */
+html[data-lang="en"]{--font-display:"Cormorant Garamond","Noto Serif JP",serif}
+/* Cormorantは字が小さく細いので、太さを上げ、x-heightを揃えて約1.15倍に見せる（0.386→0.44） */
+html[data-lang="en"] body.display,html[data-lang="en"] .pp-card{font-weight:600;font-size-adjust:.44}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:transparent;color:var(--text);
   font-family:var(--font)}
@@ -82,7 +87,7 @@ body.edit{background:#0f0e14;font-size:14px}
 #result .cell{transform:none;animation:pulse 1.4s ease-in-out infinite;border-color:var(--gold)}
 /* 結果画面は下に名前が出るので、カード上の見出しは出さない */
 #result .cell .label{display:none}
-/* 「抽選する」ボタン（一覧側は抽選画面の大きさに合わせて縮める。結果側は結果ごと縮むので等倍） */
+/* 抽選ボタン（一覧側は抽選画面の大きさに合わせて縮める。結果側は結果ごと縮むので等倍） */
 .draw-btn{--b:var(--bs,1);flex:none;margin-top:calc(80px * var(--b));padding:calc(20px * var(--b)) calc(96px * var(--b));font:inherit;font-size:calc(44px * var(--b));
   letter-spacing:.2em;color:#eef1fb;background:rgba(14,16,26,.85);border:1px solid var(--gold);cursor:pointer;
   box-shadow:0 0 calc(18px * var(--b)) var(--gold-soft);transition:opacity .3s,background .2s,box-shadow .2s}
@@ -135,10 +140,12 @@ body.edit{background:#0f0e14;font-size:14px}
 .social:hover{color:var(--gold);border-color:var(--gold)}
 .ed-foot{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;line-height:1.8}
 .ed-foot p{margin:12px 0 0}
-.foot-links{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:36px}.foot-label{width:8em;box-sizing:border-box;text-align:center;padding:2px 8px;font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:4px}
+.foot-links{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:36px}
+.foot-label{width:8em;box-sizing:border-box;text-align:center;padding:2px 8px;font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:4px}
 .foot-name{color:var(--text);font-size:13.5px}
 .ed-foot .social{width:30px;height:30px}
-.ed-foot .social svg{width:16px;height:16px}.ed-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.ed-foot .social svg{width:16px;height:16px}
+.ed-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
 .ed-cols.wide-left{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}
 @media (max-width:860px){.ed-cols,.ed-cols.wide-left{grid-template-columns:1fr}}
 .ed-wrap h2{font-size:16px;margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);color:var(--accent);font-weight:700}
@@ -230,8 +237,8 @@ var I18N = {
     heading:'ナイトレイン キャラランダムツール',
     lead:'次に出撃するキャラを抽選するツール。OBSのブラウザソースとしても使えます',
     empty:'抽選対象がありません',
-    draw:'抽選する',
-    again:'もう一度抽選する',
+    draw:'出撃',
+    again:'もう一度出撃',
     next:'次の出撃',
     preview:'プレビュー',
     count:'{0} / {1}件',
@@ -259,7 +266,7 @@ var I18N = {
     bgH:'背景色', bgChk:'背景色を付ける', bgNote:'チェックを外しているときは背景が透過されます。',
     pinH:'決定後の表示', pinChk:'決定したキャラを指定した位置に表示する',
     pinNote:'結果画面を5秒表示した後、決定したキャラのカードだけを指定した位置に切り替えて表示します。位置は1920×1080の画面の左上を0としています。',
-    btnH:'抽選ボタン', btnChk:'画面に「抽選する」ボタンを表示する',
+    btnH:'抽選ボタン', btnChk:'画面に「出撃」ボタンを表示する',
     btnNote:'ボタンは配信画面にも映ります。映したくない場合はチェックを外してください（ソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押すと抽選できます）。',
     autoH:'自動で抽選する', autoChk:'画面が表示されたら自動で抽選する',
     autoNote:'ページを開いたときや、シーンを切り替えたりソースを表示し直したりしたときに、自動で抽選が始まります。',
@@ -267,9 +274,10 @@ var I18N = {
     howtoH:'OBSでの使い方',
     step1:'必要に応じて下の「オプション」を設定してから、「抽選画面のURL」の「コピー」を押してください。',
     step2:'OBSで「ソース」→「ブラウザ」を追加し、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。',
-    step3:'抽選するときは、ソースを右クリック→「対話」を開き、「抽選する」ボタンを押すか、画面をクリックしてからSpaceキーを押してください。「自動で抽選する」にチェックを入れると、シーンを切り替えたりソースを表示し直したりするたびに自動で抽選されます。',
+    step3:'抽選するときは、ソースを右クリック→「対話」を開き、「出撃」ボタンを押すか、画面をクリックしてからSpaceキーを押してください。「自動で抽選する」にチェックを入れると、シーンを切り替えたりソースを表示し直したりするたびに自動で抽選されます。',
     howtoNote:'※設定を変えるとURLも変わるため、OBS側のURLも貼り直してください。',
-    author:'作成者', authorName:'えすさん',    disclaimer:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'
+    author:'作成者', authorName:'えすさん',
+    disclaimer:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'
   },
   en:{
     title:'NIGHTREIGN Random Nightfarer Picker (OBS Ready)',
@@ -315,7 +323,8 @@ var I18N = {
     step2:'In OBS, add a "Browser" source under "Sources" and paste the URL. Set the width to 1920 and the height to 1080.',
     step3:'To draw, right-click the source → "Interact", then click the "Draw" button, or click the screen and press Space. With "Auto Draw" checked, a draw runs every time you switch scenes or show the source again.',
     howtoNote:'* Changing settings also changes the URL, so paste the new URL into OBS again.',
-    author:'Created by', authorName:'esusan',    disclaimer:'* This is an unofficial fan tool, not affiliated with the game\'s developer or publisher. Game images are the property of their respective owners.'
+    author:'Created by', authorName:'esusan',
+    disclaimer:'* This is an unofficial fan tool, not affiliated with the game\'s developer or publisher. Game images are the property of their respective owners.'
   }
 };
 var LANG = 'ja';
@@ -388,6 +397,7 @@ if(params.get('lang') === 'en' || params.get('lang') === 'ja') state.lang = para
 else if(!params.get('d')) state.lang = /^ja/i.test(navigator.language || '') ? 'ja' : 'en';
 LANG = state.lang;
 document.documentElement.lang = LANG;
+document.documentElement.setAttribute('data-lang', LANG);
 document.title = t('title');
 
 function charOf(e){ for(var i=0;i<CHARS.length;i++){ if(CHARS[i].id === e.charId) return CHARS[i]; } return {name:{ja:'?'}, color:'#555', img:''}; }
@@ -598,7 +608,8 @@ function startDisplay(){
     resultEl.innerHTML = '';
     resultEl.appendChild(big);
     resultEl.appendChild(el('div', {className:'r-text'}, [el('div', {className:'r-label', text:t('next')}), rName]));
-    var againBtn = drawButton(t('again'));
+    // 決定後の表示がONなら、結果画面はすぐ切り替わって押せないので「もう一度」は出さない
+    var againBtn = state.pin.on ? null : drawButton(t('again'));
     if(againBtn) resultEl.appendChild(againBtn);
     resultEl.classList.add('show');
     running = false;
