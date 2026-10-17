@@ -56,6 +56,7 @@ body.edit{background:#0f0e14;font-size:14px}
 #grid{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--gap,12px);
   width:calc(var(--cols,5) * var(--cw,160px) + (var(--cols,5) - 1) * var(--gap,12px))}
 #grid .cell{flex:none}
+#grid.toggleable .cell{cursor:pointer}
 /* ゲームのキャラ選択画面風：細い二重線＋四隅の角飾り（控えめ）。画像は下寄せで上側を暗くし、そこに見出しを置く */
 .cell{--u:calc(var(--cw,160px) / 180);position:relative;width:var(--cw,160px);aspect-ratio:3/4;
   background:linear-gradient(180deg,#141826,#0a0b12);border:1px solid rgba(185,198,236,.28);overflow:hidden;box-shadow:0 6px 17px rgba(0,0,0,.6);
@@ -277,7 +278,10 @@ var I18N = {
     allOn:'すべてON', allOff:'すべてOFF',
     noRepH:'同じ結果の連続を避ける',
     noRep0:'しない', noRep1:'前回と同じものは出さない', noRep2:'全部出るまで同じものは出さない',
-    noRepNote:'抽選の履歴は、OBSでソースを非表示にしたりシーンを切り替えたりしても残ります。設定を変えたとき、ページやソースを再読み込みしたとき、OBSやブラウザのタブを閉じたときはリセットされます。Rキーで手動リセットもできます。',
+    noRepNote:'抽選の履歴は、ページを閉じたり再読み込みしたりしても残ります。設定を変えると、新しい設定の履歴は空から始まります。抽選画面のカードをクリックすると、グレーアウトを手動で付けたり外したりできます。',
+    histResetH:'履歴をリセット',
+    histResetNote:'このブラウザに保存した抽選の履歴を消します。抽選画面でRキーを押してもリセットできます。OBSで使っている場合、このボタンではOBSの履歴は消えないため、「対話」からRキーを押してください。',
+    histReset:'リセット', histCleared:'抽選の履歴をリセットしました',
     saveH:'設定を保存するには',
     saveNote:'今のアドレスバーのURLをブックマークしておけば、設定を保存しておけます。設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。',
     openDefault:'初期設定のページを開く',
@@ -310,6 +314,7 @@ var I18N = {
     keyResult:'結果画面',
     keyMini:'ミニカード',
     keyReset:'「同じ結果の連続を避ける」の履歴をリセットする',
+    clickLbl:'カードをクリック', keyToggle:'グレーアウトを付け外しする（「同じ結果の連続を避ける」を使っているとき）',
     logH:'更新履歴',
     usageH:'ご利用について',
     usageNote:'配信や動画で使う時に許可は不要です。ご自由にお使いください。',
@@ -344,7 +349,10 @@ var I18N = {
     allOn:'Check All', allOff:'Uncheck All',
     noRepH:'Avoid Repeats',
     noRep0:'Off', noRep1:'Never the same as the last result', noRep2:'No repeats until every entry has come up',
-    noRepNote:'The draw history is kept when you hide the source or switch scenes in OBS. It resets when you change settings, reload the page or source, or close OBS or the browser tab. You can also reset it manually with the R key.',
+    noRepNote:'The draw history is kept even if you close or reload the page. When you change settings, the history for the new settings starts empty. Click a card on the picker screen to gray it out or restore it by hand.',
+    histResetH:'Reset History',
+    histResetNote:'Clears the draw history saved in this browser. You can also press R on the picker screen. In OBS, this button does not clear OBS\'s history, so press R via "Interact".',
+    histReset:'Reset', histCleared:'Reset the draw history',
     saveH:'Saving Your Settings',
     saveNote:'Bookmark the URL in your address bar to save your settings. All settings live only in this page\'s URL; nothing is saved on a server.',
     openDefault:'Open with Default Settings',
@@ -377,6 +385,7 @@ var I18N = {
     keyResult:'Result Screen',
     keyMini:'Mini Card',
     keyReset:'Reset the "Avoid Repeats" history',
+    clickLbl:'Click a card', keyToggle:'Gray it out or restore it (when "Avoid Repeats" is in use)',
     logH:'Changelog',
     usageH:'Usage',
     usageNote:'No permission is needed to use this tool on streams or in videos. Feel free to use it.',
@@ -391,10 +400,14 @@ var I18N = {
 var CHANGELOG = [
   {date:'2026-10-18', ja:[
     'ショートカットキーで画面を切り替えられるように（カード一覧／結果画面／ミニカード／すべて非表示）',
+    '「同じ結果の連続を避ける」の履歴が、ページを閉じても残るように',
+    'カードをクリックして、グレーアウトを手動で付け外しできるように',
     'ミニカードの自動切り替えをON/OFFできるように',
     '抽選ボタンの名前を「出撃する」に変更'
   ], en:[
     'Added shortcut keys to switch screens (Card List / Result Screen / Mini Card / Hide All)',
+    'The "Avoid Repeats" history now stays after closing the page',
+    'Click a card to gray it out or restore it by hand',
     'The automatic switch to the Mini Card can now be turned on or off'
   ]},
   {date:'2026-10-17', ja:[
@@ -430,6 +443,7 @@ var MAX_ENTRIES = 100;
 var DURATION_MS = 4000; // 演出の長さは固定
 var CANVAS_W = 1920, CANVAS_H = 1080; // 表示サイズは固定
 var SCALE_MIN = 30, SCALE_MAX = 100;
+var HIST_KEY = 'nightreign-picker-history', HIST_MAX = 20; // 連続を避ける履歴の保存先（localStorage）と、残す設定の数
 var PIN_DELAY_MS = 5000; // 結果画面を見せてから指定位置表示に切り替えるまで
 var SOUND_ENABLED = false; // 効果音はOBSでブチブチ鳴る問題が解決するまで止めている（オプションも出さない）
 var DEFAULT = {
@@ -623,14 +637,37 @@ function startDisplay(){
   var running = false, lastDrawAt = 0, lastWin = -1; // lastWin：直前の当選（2・3キーで出し直す用。一覧に戻しても消さない）
   var timers = [], pinTimer = null, pinEl = null;
 
-  // 連続を避けるための当選履歴。ページを開いている間だけメモリに持つ（非表示→再表示では消えない）
+  // 連続を避けるための当選履歴。企画が途中で止まっても続きから使えるよう、ブラウザ（OBSならOBSのブラウザ）に保存する。
+  // 設定が変わると別の履歴になるよう、?d= ごとに分けて持つ。保存できない環境ではメモリだけで動く
+  var histId = params.get('d') || '';
   var lastWinner = -1, usedWinners = {};
+  function loadHistory(){
+    try{
+      var h = (JSON.parse(localStorage.getItem(HIST_KEY)) || {})[histId];
+      if(!h) return;
+      if(h.last >= 0 && h.last < cells.length) lastWinner = h.last;
+      (h.used || []).forEach(function(i){ if(i >= 0 && i < cells.length) usedWinners[i] = true; });
+    }catch(e){}
+  }
+  function saveHistory(){
+    try{
+      var all = JSON.parse(localStorage.getItem(HIST_KEY)) || {};
+      all[histId] = {last:lastWinner, used:Object.keys(usedWinners).map(Number), at:Date.now()};
+      // 設定を変えるたびに増えるので、新しいものから HIST_MAX 件だけ残す
+      Object.keys(all).sort(function(a, b){ return all[b].at - all[a].at; }).slice(HIST_MAX).forEach(function(k){ delete all[k]; });
+      localStorage.setItem(HIST_KEY, JSON.stringify(all));
+    }catch(e){}
+  }
+  loadHistory();
   // 次の抽選で当たりうるカードの番号
   function candidates(n){
     var cand = [];
     for(var i=0;i<n;i++) cand.push(i);
-    // 2：この巡で出たものを外す（一巡したら全部が対象に戻る）
-    if(state.noRepeat === 2) cand = cand.filter(function(i){ return !usedWinners[i]; });
+    // 2：この巡で出たものを外す（一巡したら全部が対象に戻る。クリックで全部グレーアウトにされたときも全部を対象にする）
+    if(state.noRepeat === 2){
+      var rest = cand.filter(function(i){ return !usedWinners[i]; });
+      if(rest.length) cand = rest;
+    }
     // 1：前回と同じものだけ外す
     if(state.noRepeat === 1 && cand.length > 1) cand = cand.filter(function(i){ return i !== lastWinner; });
     return cand;
@@ -638,12 +675,29 @@ function startDisplay(){
   function recordWinner(i){
     lastWinner = i; usedWinners[i] = true;
     if(Object.keys(usedWinners).length >= cells.length) usedWinners = {}; // 一巡したら履歴をリセット
+    saveHistory();
   }
   // Rキーで履歴を手動リセットする。抽選中は演出を崩さないよう、グレーアウトの塗り直しだけ次の抽選に任せる
   function clearHistory(){
     lastWinner = -1; usedWinners = {};
+    saveHistory();
     if(!running) paintExcluded();
   }
+  // 抽選前の一覧でカードをクリックすると、グレーアウトを付け外しする（途中で止まった企画の続きを手で合わせる用）。
+  // 「全部出るまで」は出たカードの印を、「前回と同じものは出さない」は前回の当選を付け替える
+  function toggleUsed(i){
+    if(running || stage.classList.contains('done') || canvas.classList.contains('pinned') || canvas.classList.contains('hidden')) return;
+    if(state.noRepeat === 2){
+      if(usedWinners[i]) delete usedWinners[i]; else usedWinners[i] = true;
+      if(Object.keys(usedWinners).length >= cells.length) usedWinners = {}; // 全部に印が付いたら、抽選で一巡したときと同じく戻す
+    }
+    else if(state.noRepeat === 1) lastWinner = lastWinner === i ? -1 : i;
+    else return;
+    saveHistory();
+    paintExcluded();
+  }
+  cells.forEach(function(c, i){ c.addEventListener('click', function(){ toggleUsed(i); }); });
+  if(state.noRepeat) grid.classList.add('toggleable');
   // 次の抽選で当たらないカードをグレーアウトする
   function paintExcluded(){
     var cand = candidates(cells.length);
@@ -1040,6 +1094,20 @@ function startEditor(){
           return el('label', {className:'chk'}, [el('input', {type:'radio', name:'noRepeat', checked:state.noRepeat === r[1], onchange:function(){ state.noRepeat = r[1]; sync(); }}), r[0]]);
         })),
         el('p', {className:'ed-note', style:'margin-top:12px', text:t('noRepNote')})
+      ]),
+      // ブラウザで使う人向け。消えるのはこのブラウザに保存した今の設定の履歴だけ（OBSのブラウザは保存先が別）
+      el('div', {className:'opt'}, [
+        el('h3', {text:t('histResetH')}),
+        el('p', {className:'ed-note', text:t('histResetNote')}),
+        el('button', {className:'b', text:t('histReset'), onclick:function(){
+          try{
+            var all = JSON.parse(localStorage.getItem(HIST_KEY)) || {};
+            delete all[encode(state)];
+            localStorage.setItem(HIST_KEY, JSON.stringify(all));
+          }catch(e){}
+          frame.src = displayUrl(state);
+          toast(t('histCleared'));
+        }})
       ])
     ]),
     el('h2', {text:t('saveH')}),
@@ -1164,7 +1232,7 @@ function startEditor(){
     el('div', {className:'howto'}, [
       el('h2', {text:t('keysH')}),
       el('p', {className:'howto-note keys-note', text:t('keysNote')}),
-      keyList('keysOpH', [[['Space'], 'keyDraw'], [['Enter'], 'keyDraw'], [['R'], 'keyReset']]),
+      keyList('keysOpH', [[['Space'], 'keyDraw'], [['Enter'], 'keyDraw'], [['R'], 'keyReset'], [[t('clickLbl')], 'keyToggle']]),
       keyList('keysScrH', [[['Esc'], 'keyBack'], [['1'], 'keyBack'], [['2'], 'keyResult'], [['3'], 'keyMini'], [['0'], 'keyHide']])
     ]),
     el('div', {className:'ed-cols'}, [obsLeft, obsRight]),
