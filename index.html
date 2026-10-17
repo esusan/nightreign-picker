@@ -88,8 +88,8 @@ body.edit{background:#0f0e14;font-size:14px}
 /* 結果画面は下に名前が出るので、カード上の見出しは出さない */
 #result .cell .label{display:none}
 /* 抽選ボタン（一覧側は抽選画面の大きさに合わせて縮める。結果側は結果ごと縮むので等倍） */
-.draw-btn{--b:var(--bs,1);flex:none;margin-top:calc(80px * var(--b));padding:calc(20px * var(--b)) calc(96px * var(--b));font:inherit;font-size:calc(44px * var(--b));
-  letter-spacing:.2em;color:#eef1fb;background:rgba(14,16,26,.85);border:1px solid var(--gold);cursor:pointer;
+.draw-btn{--b:var(--bs,1);flex:none;margin-top:calc(52px * var(--b));padding:calc(20px * var(--b)) calc(96px * var(--b));font:inherit;font-size:calc(44px * var(--b));
+  letter-spacing:.2em;text-indent:.2em;color:#eef1fb;background:rgba(14,16,26,.85);border:1px solid var(--gold);cursor:pointer;
   box-shadow:0 0 calc(18px * var(--b)) var(--gold-soft);transition:opacity .3s,background .2s,box-shadow .2s}
 .draw-btn:hover{background:rgba(40,46,70,.9);box-shadow:0 0 calc(30px * var(--b)) var(--gold-soft)}
 #result .draw-btn{--b:1;margin-top:0;pointer-events:none}
@@ -400,11 +400,23 @@ var CHANGELOG = [
   {date:'2026-10-17', ja:[
     '登録できる件数を最大100件に',
     '英語版に対応',
-    'ショートカットキー（Esc・R）を追加'
+    'ショートカットキー（Esc・R）を追加',
+    '「すべてON／すべてOFF」ボタンを追加',
+    '「ご利用について」を追加',
+    'ミニカードを正方形にして、コンセプトだけを表示するように',
+    'カードのコンセプトの文字を大きく',
+    'カード一覧と結果画面の大きさの初期値を100%に',
+    'スマホでコンセプト欄が潰れないように調整'
   ], en:[
     'Raised the entry limit to 100',
     'Added English support',
-    'Added shortcut keys (Esc, R)'
+    'Added shortcut keys (Esc, R)',
+    'Added "Check All / Uncheck All" buttons',
+    'Added the "Usage" section',
+    'Made the Mini Card square, showing only the concept',
+    'Enlarged the concept text on cards',
+    'Changed the default card list and result size to 100%',
+    'Adjusted the layout so the concept field isn\'t squeezed on phones'
   ]},
   {date:'2026-10-16', ja:['公開'], en:['Released']}
 ];
