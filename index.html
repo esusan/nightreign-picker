@@ -203,6 +203,11 @@ button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 .urlbox input{font-family:Consolas,monospace;font-size:12px}
 .usage{margin-top:28px}
 .usage .urlbox input{font-family:inherit;font-size:13px}
+.changelog{margin-top:28px}
+.changelog dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0;color:var(--muted);font-size:12.5px;line-height:1.7}
+.changelog dt{font-variant-numeric:tabular-nums}
+.changelog dd{margin:0}
+.changelog ul{margin:0;padding-left:1.2em}
 .side{position:sticky;top:12px}
 .preview-top{margin-top:14px}
 .howto.obs-howto{margin-top:44px}
@@ -305,6 +310,7 @@ var I18N = {
     keyResult:'結果画面',
     keyMini:'ミニカード',
     keyReset:'「同じ結果の連続を避ける」の履歴をリセットする',
+    logH:'更新履歴',
     usageH:'ご利用について',
     usageNote:'配信や動画で使う時に許可は不要です。ご自由にお使いください。',
     creditNote:'必須ではありませんが、概要欄などでこのページを紹介してもらえると嬉しいです。',
@@ -371,6 +377,7 @@ var I18N = {
     keyResult:'Result Screen',
     keyMini:'Mini Card',
     keyReset:'Reset the "Avoid Repeats" history',
+    logH:'Changelog',
     usageH:'Usage',
     usageNote:'No permission is needed to use this tool on streams or in videos. Feel free to use it.',
     creditNote:'Not required, but I\'d be happy if you shared this page in your stream or video description.',
@@ -380,6 +387,27 @@ var I18N = {
     disclaimer:'* This is an unofficial fan tool, not affiliated with the game\'s developer or publisher. Game images are the property of their respective owners.'
   }
 };
+// 更新履歴（新しい順。編集画面の下に出す）
+var CHANGELOG = [
+  {date:'2026-10-18', ja:[
+    'ショートカットキーで画面を切り替えられるように（カード一覧／結果画面／ミニカード／すべて非表示）',
+    'ミニカードの自動切り替えをON/OFFできるように',
+    '抽選ボタンの名前を「出撃する」に変更'
+  ], en:[
+    'Added shortcut keys to switch screens (Card List / Result Screen / Mini Card / Hide All)',
+    'The automatic switch to the Mini Card can now be turned on or off'
+  ]},
+  {date:'2026-10-17', ja:[
+    '登録できる件数を最大100件に',
+    '英語版に対応',
+    'ショートカットキー（Esc・R）を追加'
+  ], en:[
+    'Raised the entry limit to 100',
+    'Added English support',
+    'Added shortcut keys (Esc, R)'
+  ]},
+  {date:'2026-10-16', ja:['公開'], en:['Released']}
+];
 var LANG = 'ja';
 function t(k){
   var s = I18N[LANG][k] !== undefined ? I18N[LANG][k] : I18N.ja[k], args = arguments;
@@ -1086,6 +1114,15 @@ function startEditor(){
       el('button', {className:'b primary', text:t('copy'), onclick:function(){ copy(creditInput, t('copiedCredit')); }})])
   ]);
 
+  var changelog = el('div', {className:'changelog'}, [
+    el('h2', {text:t('logH')}),
+    el('dl', {}, CHANGELOG.reduce(function(a, c){
+      a.push(el('dt', {text:c.date}));
+      a.push(el('dd', {}, [el('ul', {}, (c[LANG] || c.ja).map(function(s){ return el('li', {text:s}); }))]));
+      return a;
+    }, []))
+  ]);
+
   // 言語切替。設定はすべてURLに入っているので、言語を変えたURLで開き直すだけでよい
   var langSwitch = el('div', {className:'lang-switch', role:'group'}, [['ja', '日本語'], ['en', 'English']].map(function(l){
     var b = el('button', {type:'button', className:'lang-btn' + (LANG === l[0] ? ' on' : ''), text:l[1], onclick:function(){
@@ -1120,6 +1157,7 @@ function startEditor(){
     ]),
     el('div', {className:'ed-cols'}, [obsLeft, obsRight]),
     usage,
+    changelog,
     el('div', {className:'ed-foot'}, [
       el('div', {className:'foot-links'}, [
         el('span', {className:'foot-label', text:t('author')}),
