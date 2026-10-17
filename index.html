@@ -211,7 +211,7 @@ button.b.danger:hover{border-color:var(--danger);color:var(--danger)}
 .changelog ul{margin:0;padding-left:1.2em}
 .side{position:sticky;top:12px}
 .preview-top{margin-top:14px}
-.howto.obs-howto{margin-top:44px}
+.howto.obs-howto{margin-top:132px}
 .frame{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000}
 .frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .howto{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 16px 12px;margin:14px 0 4px}
@@ -587,8 +587,9 @@ function startDisplay(){
   var empty = el('div', {id:'empty', text:t('empty'), hidden:true});
   // 「抽選する」ボタン。一覧の下と結果画面の下に1つずつ置き、状態に応じてどちらかだけ見せる
   function drawButton(text){ return state.button ? el('button', {className:'draw-btn', text:text, onclick:function(ev){ this.blur(); draw(); }}) : null; }
-  // 自動抽選のときは表示と同時に抽選が始まるので、一覧側のボタンは出さない（結果画面の「もう一度」は出す）
-  var stageBtn = state.autoStart ? null : drawButton(t('draw'));
+  var pool = state.entries.filter(function(e){ return e.enabled; });
+  // 自動抽選のときは表示と同時に抽選が始まるので、一覧側のボタンは出さない（結果画面の「もう一度」は出す）。抽選対象が無いときも出さない
+  var stageBtn = state.autoStart || !pool.length ? null : drawButton(t('draw'));
   var stage = el('div', {id:'stage'}, [grid, empty, stageBtn]);
   var rName = el('div', {className:'r-name'});
   var resultEl = el('div', {id:'result'});
@@ -597,7 +598,6 @@ function startDisplay(){
   var canvas = el('div', {id:'canvas'}, [stage, resultEl]);
   if(bgEl) app.appendChild(bgEl);
   app.appendChild(canvas);
-  var pool = state.entries.filter(function(e){ return e.enabled; });
   var cells = pool.map(function(e){
     var cell = makeCell(e);
     grid.appendChild(cell);
