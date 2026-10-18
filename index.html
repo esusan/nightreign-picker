@@ -576,7 +576,16 @@ function keyList(head, rows){
   ]);
 }
 
-if(isEdit) startEditor(); else startDisplay();
+// アクセス数の集計（GoatCounter）。OBSで読み込むたびに数えないよう編集画面だけ、設定（?d=）は送らず言語だけ送る
+// count.jsはURLのクエリを必ず送るので使わず、受け口に直接送る。参照元もクエリを落とす（言語切替で開き直すと自分の?d=が入るため）
+function countView(){
+  if(location.protocol === 'file:' || /(localhost$|^127\.|^\[::1\]$)/.test(location.hostname)) return;
+  var q = {p:'/' + LANG, t:document.title, r:document.referrer.replace(/[?#].*$/, ''), s:screen.width, b:navigator.webdriver ? 153 : 0, rnd:Math.random().toString(36).slice(2)};
+  var url = 'https://esusan.goatcounter.com/count?' + Object.keys(q).map(function(k){ return k + '=' + encodeURIComponent(q[k]); }).join('&');
+  if(!(navigator.sendBeacon && navigator.sendBeacon(url))) new Image().src = url;
+}
+
+if(isEdit){ startEditor(); countView(); } else startDisplay();
 
 // ================= 表示モード（OBS用） =================
 function startDisplay(){
