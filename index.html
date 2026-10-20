@@ -705,7 +705,14 @@ function startDisplay(){
     saveHistory();
     paintExcluded();
   }
-  cells.forEach(function(c, i){ c.addEventListener('click', function(){ toggleUsed(i); }); });
+  // 隠しコマンド：一覧でShift+クリックしたカードを、次の抽選で強制的に当てる（グレーアウト中でも当てる）。
+  // 見た目は何も変えない。同じカードをもう一度Shift+クリックすると取り消し。1回の抽選で使い切る
+  var forced = -1;
+  function toggleForced(i){
+    if(running || stage.classList.contains('done') || canvas.classList.contains('pinned') || canvas.classList.contains('hidden')) return;
+    forced = forced === i ? -1 : i;
+  }
+  cells.forEach(function(c, i){ c.addEventListener('click', function(ev){ if(ev.shiftKey) toggleForced(i); else toggleUsed(i); }); });
   if(state.noRepeat) grid.classList.add('toggleable');
   // 次の抽選で当たらないカードをグレーアウトする
   function paintExcluded(){
@@ -815,7 +822,8 @@ function startDisplay(){
 
     // 光はグレーアウトしていないカードの上だけを走る
     var cand = candidates(cells.length), n = cand.length;
-    var winner = cand[Math.floor(Math.random()*n)];
+    var winner = forced >= 0 ? forced : cand[Math.floor(Math.random()*n)];
+    forced = -1;
     function randCand(){ return cand[Math.floor(Math.random()*n)]; }
     var dur = DURATION_MS;
     // 最初は速く、終盤にかけて減速。同じマスに連続で止まらない
