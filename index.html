@@ -81,20 +81,30 @@ body.edit{background:#0f0e14;font-size:14px}
 .cell.out{opacity:.65;filter:grayscale(1) brightness(.75)}
 #stage.done .cell{opacity:0}
 #stage.done .cell.win{opacity:0}
+/* 結果画面・ミニカード・非表示のときは、見えなくなった一覧のカードがタップに反応しないようにする */
+#stage.done .cell,#canvas.pinned .cell,#canvas.hidden .cell{pointer-events:none}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 2px var(--gold),0 0 22px var(--gold),0 0 43px var(--gold-soft)}50%{box-shadow:0 0 0 3px var(--gold),0 0 43px var(--gold),0 0 97px var(--gold-soft)}}
-#result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(calc(.85 * var(--rs,1)));opacity:0;pointer-events:none;transition:opacity .5s,transform .5s cubic-bezier(.2,1.4,.4,1);
+/* 結果画面の大きさ（オプションでは変えない固定値） */
+#result{--rs:.9;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(calc(.85 * var(--rs,1)));opacity:0;pointer-events:none;transition:opacity .5s,transform .5s cubic-bezier(.2,1.4,.4,1);
   display:flex;flex-direction:column;align-items:center;gap:56px}
 #result.show{opacity:1;transform:translate(-50%,-50%) scale(var(--rs,1))}
 #result .cell{transform:none;animation:pulse 1.4s ease-in-out infinite;border-color:var(--gold)}
 /* 結果画面は下に名前が出るので、カード上の見出しは出さない */
 #result .cell .label{display:none}
-/* 抽選ボタン（一覧側は抽選画面の大きさに合わせて縮める。結果側は結果ごと縮むので等倍） */
+/* 抽選ボタン（一覧側はカード一覧の大きさに合わせて縮める。結果側は等倍） */
 .draw-btn{--b:var(--bs,1);flex:none;margin-top:calc(52px * var(--b));padding:calc(20px * var(--b)) calc(96px * var(--b));font:inherit;font-size:calc(44px * var(--b));
   letter-spacing:.2em;text-indent:.2em;color:#eef1fb;background:rgba(14,16,26,.85);border:1px solid var(--gold);cursor:pointer;
   box-shadow:0 0 calc(18px * var(--b)) var(--gold-soft);transition:opacity .3s,background .2s,box-shadow .2s}
 .draw-btn:hover{background:rgba(40,46,70,.9);box-shadow:0 0 calc(30px * var(--b)) var(--gold-soft)}
 #result .draw-btn{--b:1;margin-top:0;pointer-events:none}
 #result.show .draw-btn{pointer-events:auto}
+/* 結果画面の「もう一度出撃」の下に「一覧に戻る」をテキストリンクで出す */
+#result .r-btns{display:flex;flex-direction:column;align-items:center;gap:36px}
+.back-link{font:inherit;font-size:26px;letter-spacing:.15em;color:var(--muted);background:none;border:0;padding:4px 8px;cursor:pointer;
+  text-shadow:0 0 6px #000;pointer-events:none;transition:color .2s}
+.back-link:hover{color:var(--gold)}
+#result.show .back-link{pointer-events:auto}
+#canvas.pinned .back-link,#canvas.hidden .back-link{pointer-events:none}
 #stage.running .draw-btn,#stage.done .draw-btn{opacity:0;pointer-events:none}
 #canvas.pinned .draw-btn{pointer-events:none}
 #result .r-concept{margin-right:.3em}
@@ -262,6 +272,7 @@ var I18N = {
     empty:'抽選対象がありません',
     draw:'出撃する',
     again:'もう一度出撃',
+    back:'一覧に戻る',
     next:'次の出撃',
     preview:'プレビュー',
     count:'{0} / {1}件',
@@ -288,12 +299,12 @@ var I18N = {
     saveNote:'今のアドレスバーのURLをブックマークしておけば、設定を保存しておけます。設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。',
     openDefault:'初期設定のページを開く',
     optH:'オプション',
-    scaleH:'カード一覧と結果画面の大きさ',
-    scaleNote:'カード一覧と結果画面の大きさを、画面いっぱい（100%）を基準に縮小できます。「ミニカード」の大きさは変わりません。',
+    scaleH:'カード一覧の大きさ',
+    scaleNote:'カード一覧の大きさを、画面いっぱい（100%）を基準に縮小できます。結果画面と「ミニカード」の大きさは変わりません。',
     bgH:'背景色', bgChk:'背景色を付ける', bgNote:'チェックを外しているときは背景が透過されます。',
     pinH:'ミニカード', pinChk:'結果画面の5秒後に自動でミニカードに切り替える',
     pinNote:'決定したキャラを小さなカードにして、指定した位置に表示します。チェックを外していても、3キーで表示できます。位置は1920×1080の画面の左上を0としています。',
-    btnH:'抽選ボタン', btnChk:'画面に「出撃する」「もう一度出撃」ボタンを表示する',
+    btnH:'抽選ボタン', btnChk:'画面に「出撃する」「もう一度出撃」「一覧に戻る」ボタンを表示する',
     btnNote:'ボタンは配信画面にも映ります。映したくない場合はチェックを外してください（ソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押すと抽選できます）。',
     autoH:'自動抽選',autoChk:'画面が表示されたら自動で抽選する',
     autoNote:'ページを開いたときや、シーンを切り替えたりソースを表示し直したりしたときに、自動で抽選が始まります。',
@@ -334,6 +345,7 @@ var I18N = {
     empty:'No entries to draw from',
     draw:'Draw',
     again:'Draw Again',
+    back:'Back to List',
     next:'Next Expedition',
     preview:'Preview',
     count:'{0} / {1}',
@@ -360,12 +372,12 @@ var I18N = {
     saveNote:'Bookmark the URL in your address bar to save your settings. All settings live only in this page\'s URL; nothing is saved on a server.',
     openDefault:'Open with Default Settings',
     optH:'Options',
-    scaleH:'Card List and Result Size',
-    scaleNote:'Scales down the card list and the result screen, with 100% filling the screen. Does not change the size of the "Mini Card".',
+    scaleH:'Card List Size',
+    scaleNote:'Scales down the card list, with 100% filling the screen. Does not change the size of the result screen or the "Mini Card".',
     bgH:'Background Color', bgChk:'Use a background color', bgNote:'When unchecked, the background is transparent.',
     pinH:'Mini Card', pinChk:'Switch to the mini card automatically 5 seconds after the result screen',
     pinNote:'Shows the chosen Nightfarer as a small card at the set position. Even when unchecked, you can show it with the 3 key. Positions are measured from the top-left of a 1920×1080 screen.',
-    btnH:'Draw Button', btnChk:'Show the "Draw" and "Draw Again" buttons on screen',
+    btnH:'Draw Button', btnChk:'Show the "Draw", "Draw Again", and "Back to List" buttons on screen',
     btnNote:'The button also appears on stream. To hide it, uncheck this (you can still draw by right-clicking the source → "Interact", clicking the screen, and pressing Space).',
     autoH:'Auto Draw', autoChk:'Draw automatically when the screen is shown',
     autoNote:'A draw starts automatically when the page opens, when you switch scenes, or when you show the source again.',
@@ -402,9 +414,13 @@ var I18N = {
 // 更新履歴（新しい順。編集画面の下に出す）
 var CHANGELOG = [
   {date:'2026-10-22', ja:[
-    '2026年10月に公表されたPHPの脆弱性の影響がないことをお知らせに記載（このツールはPHPを使っていません）'
+    '2026年10月に公表されたPHPの脆弱性の影響がないことをお知らせに記載（このツールはPHPを使っていません）',
+    '大きさのオプションをカード一覧だけに適用し、結果画面はひとまわり小さいサイズで固定に',
+    '結果画面に「一覧に戻る」ボタンを追加'
   ], en:[
-    'Added a notice that this tool is not affected by the PHP vulnerabilities disclosed in October 2026 (it does not use PHP)'
+    'Added a notice that this tool is not affected by the PHP vulnerabilities disclosed in October 2026 (it does not use PHP)',
+    'The size option now applies only to the card list; the result screen is now a fixed, slightly smaller size',
+    'Added a "Back to List" button to the result screen'
   ]},
   {date:'2026-10-18', ja:[
     'ショートカットキーで画面を切り替えられるように（カード一覧／結果画面／ミニカード／すべて非表示）',
@@ -458,7 +474,7 @@ var DEFAULT = {
   autoStart:false, // ブラウザで使うのが基本なので手動抽選が初期値（OBSでシーン切替に合わせたいときにON）
   button:true, // 画面に「抽選する」ボタンを出す
   sound:{on:false, vol:15}, // 効果音（抽選中の鼓動・決定時の音）と音量%
-  scale:100, // 抽選画面（カード一覧と結果）の大きさ（%）
+  scale:100, // カード一覧の大きさ（%）。結果画面は固定
   noRepeat:0, // 連続を避ける：0=しない 1=前回と同じものは出さない 2=全部出るまで同じものは出さない
   bg:{on:true, color:'#000000', alpha:80}, // 抽選画面の背景色と不透明度%（OFFなら透過）
   pin:{on:false, x:1050, y:840, w:160}, // 決定後に当選カードを置く位置（1920×1080基準・カード左上・幅px）
@@ -644,7 +660,6 @@ function startDisplay(){
     grid.style.setProperty('--gap', Math.floor(bestGap) + 'px');
   }
   layout();
-  resultEl.style.setProperty('--rs', state.scale / 100);
   stage.style.setProperty('--bs', state.scale / 100);
   // ウィンドウが1920×1080でなくても、縦横比を保ったまま収める
   function fit(){ canvas.style.setProperty('--k', Math.min(window.innerWidth / CANVAS_W, window.innerHeight / CANVAS_H)); }
@@ -884,7 +899,8 @@ function startDisplay(){
     resultEl.appendChild(el('div', {className:'r-text'}, [el('div', {className:'r-label', text:t('next')}), rName]));
     // ミニカードがONなら、結果画面はすぐ切り替わって押せないので「もう一度」は出さない
     var againBtn = auto && state.pin.on ? null : drawButton(t('again'));
-    if(againBtn) resultEl.appendChild(againBtn);
+    if(againBtn) resultEl.appendChild(el('div', {className:'r-btns'}, [againBtn,
+      el('button', {className:'back-link', text:t('back'), onclick:function(){ this.blur(); reset(); }})]));
     resultEl.classList.add('show');
     if(auto && state.pin.on) pinTimer = setTimeout(function(){ pinWinner(i); }, PIN_DELAY_MS);
   }
