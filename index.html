@@ -132,6 +132,7 @@ body.edit{background:#0f0e14;font-size:14px}
 .ed-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:6px 0 4px}
 .ed-head h1{font-size:22px;margin:0;color:var(--accent);font-weight:700;letter-spacing:.1em}
 .ed-head .ed-lead{color:var(--muted);font-size:13px}
+.ed-notice{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:8px 14px;margin:8px 0 12px;font-size:10px;line-height:1.7}
 /* 言語切替（見出しの行の右端） */
 .lang-switch{margin-left:auto;display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;align-self:center}
 .lang-btn{font:inherit;font-size:15px;padding:8px 18px;color:var(--muted);background:transparent;border:0;cursor:pointer;transition:color .2s,background .2s}
@@ -257,6 +258,7 @@ var I18N = {
     title:'ナイトレイン キャラランダムツール（OBS対応）',
     heading:'ナイトレイン キャラランダムツール',
     lead:'次に出撃するキャラを抽選するツール。OBSのブラウザソースとしても使えます',
+    notice:'お知らせ：2026年10月に公表されたPHPの脆弱性について、このツールはPHPを使っていない静的なページなので影響はありません。',
     empty:'抽選対象がありません',
     draw:'出撃する',
     again:'もう一度出撃',
@@ -328,6 +330,7 @@ var I18N = {
     title:'NIGHTREIGN Random Nightfarer Picker (OBS Ready)',
     heading:'NIGHTREIGN Random Nightfarer Picker',
     lead:'Randomly picks the Nightfarer for your next expedition. Also works as an OBS browser source.',
+    notice:'Notice: This tool is a static page that does not use PHP, so it is not affected by the PHP vulnerabilities disclosed in October 2026.',
     empty:'No entries to draw from',
     draw:'Draw',
     again:'Draw Again',
@@ -398,6 +401,11 @@ var I18N = {
 };
 // 更新履歴（新しい順。編集画面の下に出す）
 var CHANGELOG = [
+  {date:'2026-10-22', ja:[
+    '2026年10月に公表されたPHPの脆弱性の影響がないことをお知らせに記載（このツールはPHPを使っていません）'
+  ], en:[
+    'Added a notice that this tool is not affected by the PHP vulnerabilities disclosed in October 2026 (it does not use PHP)'
+  ]},
   {date:'2026-10-18', ja:[
     'ショートカットキーで画面を切り替えられるように（カード一覧／結果画面／ミニカード／すべて非表示）',
     '「同じ結果の連続を避ける」の履歴が、ページを閉じても残るように',
@@ -1235,6 +1243,8 @@ function startEditor(){
 
   app.appendChild(el('div', {className:'ed-wrap'}, [
     el('div', {className:'ed-head'}, [el('h1', {text:t('heading')}), el('span', {className:'ed-lead', text:t('lead')}), langSwitch]),
+    // 2026年10月のPHP脆弱性騒ぎへの案内。落ち着いたら消す
+    el('p', {className:'ed-notice', text:t('notice')}),
     preview,
     el('div', {className:'ed-cols wide-left'}, [left, right]),
     el('div', {className:'howto obs-howto'}, [
