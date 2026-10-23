@@ -76,7 +76,7 @@ body.edit{background:#0f0e14;font-size:14px}
 .cell .ttl{font-size:calc(var(--u)*19);color:#eef1fb;letter-spacing:.12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 /* キャラ名の下の線。文字幅ではなくカード幅基準にする（.ttlはoverflow:hiddenなので.label側に付ける） */
 .cell .label::after{content:"";display:block;width:75%;height:1px;margin-top:calc(var(--u)*7);background:linear-gradient(90deg,transparent,var(--gold) 30%,var(--gold) 70%,transparent)}
-.cell .sub{margin-bottom:0;font-size:calc(var(--u)*17);color:var(--gold);letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cell .sub{margin-bottom:0;font-size:calc(var(--u)*17);color:var(--gold);letter-spacing:-.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cell.on{border-color:var(--gold);transform:scale(1.07);box-shadow:0 0 0 2px var(--gold),0 0 27px var(--gold),0 0 54px var(--gold-soft);z-index:2}
 .cell.out{opacity:.65;filter:grayscale(1) brightness(.75)}
 #stage.done .cell{opacity:0}
