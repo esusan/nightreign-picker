@@ -310,6 +310,7 @@ var I18N = {
     autoNote:'ページを開いたときや、シーンを切り替えたりソースを表示し直したりしたときに、自動で抽選が始まります。',
     soundH:'効果音', soundChk:'効果音を鳴らす', volume:'音量',
     urlH:'抽選画面のURL', copy:'コピー', copied:'抽選画面のURLをコピーしました',
+    urlNote:'※設定を変更したら、OBSに貼ったURLも差し替えてください。',
     howtoH:'OBSでの使い方',
     step1:'必要に応じて下の「オプション」を設定してから、「抽選画面のURL」の「コピー」を押してください。',
     step2:'OBSで「ソース」→「ブラウザ」を追加し、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。',
@@ -383,6 +384,7 @@ var I18N = {
     autoNote:'A draw starts automatically when the page opens, when you switch scenes, or when you show the source again.',
     soundH:'Sound Effects', soundChk:'Play sound effects', volume:'Volume',
     urlH:'Picker Screen URL', copy:'Copy', copied:'Copied the picker screen URL',
+    urlNote:'* After changing settings, replace the URL in OBS as well.',
     howtoH:'Using with OBS',
     step1:'Set the "Options" below if needed, then click "Copy" under "Picker Screen URL".',
     step2:'In OBS, add a "Browser" source under "Sources" and paste the URL. Set the width to 1920 and the height to 1080.',
@@ -1221,7 +1223,8 @@ function startEditor(){
   var obsRight = el('div', {className:'side'}, [
     el('h2', {text:t('urlH')}),
     el('div', {className:'urlbox'}, [obsInput,
-      el('button', {className:'b primary', text:t('copy'), onclick:function(){ copy(obsInput, t('copied')); }})])
+      el('button', {className:'b primary', text:t('copy'), onclick:function(){ copy(obsInput, t('copied')); }})]),
+    el('p', {className:'howto-note', text:t('urlNote')})
   ]);
 
   // 概要欄に貼ってもらう用の紹介文。ローカル確認時もURLは公開先にする
