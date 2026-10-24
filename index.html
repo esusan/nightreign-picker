@@ -309,10 +309,10 @@ var I18N = {
     autoH:'自動抽選',autoChk:'画面が表示されたら自動で抽選する',
     autoNote:'ページを開いたときや、シーンを切り替えたりソースを表示し直したりしたときに、自動で抽選が始まります。',
     soundH:'効果音', soundChk:'効果音を鳴らす', volume:'音量',
-    urlH:'抽選画面のURL', copy:'コピー', copied:'抽選画面のURLをコピーしました',
+    urlH:'OBS用URL', copy:'コピー', copied:'OBS用URLをコピーしました',
     urlNote:'※設定を変更したら、OBSに貼ったURLも差し替えてください。',
     howtoH:'OBSでの使い方',
-    step1:'必要に応じて下の「オプション」を設定してから、「抽選画面のURL」の「コピー」を押してください。',
+    step1:'必要に応じて下の「オプション」を設定してから、「OBS用URL」の「コピー」を押してください。',
     step2:'OBSで「ソース」→「ブラウザ」を追加し、URL欄に貼り付けてください。サイズは幅1920・高さ1080に設定してください。',
     step3:'抽選するときは、ソースを右クリック→「対話」を開き、「出撃する」ボタンを押すか、画面をクリックしてからSpaceキーを押してください。「自動抽選」にチェックを入れると、シーンを切り替えたりソースを表示し直したりするたびに自動で抽選されます。',
     howtoNote:'※設定を変えるとURLも変わるため、OBS側のURLも貼り直してください。',
@@ -383,10 +383,10 @@ var I18N = {
     autoH:'Auto Draw', autoChk:'Draw automatically when the screen is shown',
     autoNote:'A draw starts automatically when the page opens, when you switch scenes, or when you show the source again.',
     soundH:'Sound Effects', soundChk:'Play sound effects', volume:'Volume',
-    urlH:'Picker Screen URL', copy:'Copy', copied:'Copied the picker screen URL',
+    urlH:'OBS URL', copy:'Copy', copied:'Copied the OBS URL',
     urlNote:'* After changing settings, replace the URL in OBS as well.',
     howtoH:'Using with OBS',
-    step1:'Set the "Options" below if needed, then click "Copy" under "Picker Screen URL".',
+    step1:'Set the "Options" below if needed, then click "Copy" under "OBS URL".',
     step2:'In OBS, add a "Browser" source under "Sources" and paste the URL. Set the width to 1920 and the height to 1080.',
     step3:'To draw, right-click the source → "Interact", then click the "Draw" button, or click the screen and press Space. With "Auto Draw" checked, a draw runs every time you switch scenes or show the source again.',
     howtoNote:'* Changing settings also changes the URL, so paste the new URL into OBS again.',
@@ -415,6 +415,15 @@ var I18N = {
 };
 // 更新履歴（新しい順。編集画面の下に出す）
 var CHANGELOG = [
+  {date:'2026-10-24', ja:[
+    '「抽選画面のURL」を「OBS用URL」に名称変更',
+    'OBS用URLの下に「設定を変更したらOBSに貼ったURLも差し替える」旨の注意書きを追加',
+    'カードのコンセプトテキストの字間を調整'
+  ], en:[
+    'Renamed "Picker Screen URL" to "OBS URL"',
+    'Added a note under the OBS URL to replace the URL in OBS after changing settings',
+    'Adjusted the letter spacing of the concept text on cards'
+  ]},
   {date:'2026-10-22', ja:[
     '2026年10月に公表されたPHPの脆弱性の影響がないことをお知らせに記載（このツールはPHPを使っていません）',
     '大きさのオプションをカード一覧だけに適用し、結果画面はひとまわり小さいサイズで固定に',
