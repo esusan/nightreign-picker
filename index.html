@@ -136,6 +136,29 @@ body.edit{background:#0f0e14;font-size:14px}
 .cell.pinc .label{top:0;padding:calc(var(--u)*10) 4% calc(var(--u)*30);background:linear-gradient(0deg,transparent,rgba(8,7,12,.6) 40%,rgba(8,7,12,.88))}
 .cell.pinc .label::after{display:none}
 .cell.pinc .ttl{font-size:calc(var(--u)*22);letter-spacing:.05em}
+/* 進行状況：抽選対象をミニカードと同じ正方形のカードで横一列に並べる。抽選画面ではどの画面とも別に出し、4キーで出し入れする（0キーのすべて非表示では消える） */
+.clear-bar{--cw:72px;position:absolute;z-index:4;padding:calc(var(--cw)*.1);background:rgba(8,7,12,.8);border:1px solid rgba(185,198,236,.22);white-space:nowrap}
+#canvas .clear-bar{transition:opacity .6s}
+#canvas.clear-off .clear-bar,#canvas.hidden:not(.keep-clear) .clear-bar{opacity:0;pointer-events:none}
+/* keep-clear：「結果画面のあと」の非表示。結果画面と背景だけ消して進行状況は残す */
+#canvas:not(.clear-off):not(.hidden) .clear-bar .cell,#canvas.keep-clear:not(.clear-off) .clear-bar .cell{pointer-events:auto;cursor:pointer}
+.cl-row{display:flex;gap:calc(var(--cw)*.08)}
+.clear-bar .cell{box-shadow:0 3px 8px rgba(0,0,0,.6)}
+/* 小さいので、コンセプトは字を大きめにして2行まで折り返す */
+.clear-bar .cell.pinc .label{padding:calc(var(--u)*8) 3% calc(var(--u)*24)}
+.clear-bar .cell.pinc .ttl{font-size:calc(var(--cw)*.18);letter-spacing:0;line-height:1.15;white-space:normal;word-break:break-all;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+/* 抽選で決まったキャラは光らせ、ほかのカードは少し暗くする */
+.clear-bar .cell.cur{border-color:var(--gold);z-index:1;box-shadow:0 0 0 2px var(--gold),0 0 14px var(--gold),0 0 28px var(--gold-soft)}
+.clear-bar.has-cur .cell:not(.cur) .art{filter:brightness(.6)}
+/* チェック済み：カードをグレーアウトし、右下に丸いバッジ＋チェックを付ける */
+.clear-bar .cell.cleared .art,.clear-bar.has-cur .cell.cleared:not(.cur) .art{filter:grayscale(1) brightness(.5)}
+.clear-bar .cell.cleared .ttl{color:#9a9eab}
+/* グレーアウトした上でも埋もれないよう、金で塗りつぶした丸に暗い色のチェックを抜く */
+.cl-mark{display:none;position:absolute;right:5%;bottom:5%;width:42%;aspect-ratio:1/1;z-index:4;box-sizing:border-box;padding:7%;border-radius:50%;
+  color:#10121c;background:var(--gold);box-shadow:0 0 3px #000}
+.cl-mark svg{display:block;width:100%;height:100%}
+.cell.cleared .cl-mark{display:block}
 
 /* ---------- 設定 ---------- */
 .ed-wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px}
@@ -192,6 +215,8 @@ body.edit{background:#0f0e14;font-size:14px}
 .pp-card{position:absolute;width:var(--cw,160px);aspect-ratio:3/4;background:var(--card-bg);border:2px solid var(--gold);border-radius:calc(var(--cw,160px)*.05);
   overflow:hidden;cursor:move;touch-action:none;user-select:none;box-shadow:0 0 0 2px var(--gold),0 0 22px var(--gold-soft)}
 .pp-card img{pointer-events:none}
+.pp-box .clear-bar{cursor:move;touch-action:none;user-select:none}
+.pin-block.disabled{opacity:.45;pointer-events:none}
 .pp-handle{position:absolute;right:0;bottom:0;width:48px;height:48px;background:var(--gold);clip-path:polygon(100% 0,100% 100%,0 100%);cursor:nwse-resize;z-index:2}
 .chk{display:flex;align-items:center;gap:6px;cursor:pointer}
 input[type=text],input[type=number],select{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font:inherit;min-width:0;width:100%}
@@ -290,10 +315,10 @@ var I18N = {
     add:'＋ 追加',
     allOn:'すべてON', allOff:'すべてOFF',
     noRepH:'同じ結果の連続を避ける',
-    noRep0:'しない', noRep1:'前回と同じものは出さない', noRep2:'全部出るまで同じものは出さない',
+    noRep0:'しない', noRep1:'前回と同じものは出さない', noRep2:'全部出るまで同じものは出さない', noRep3:'進行状況でチェックを付けたものは出さない',
     noRepNote:'抽選の履歴は、ページを閉じたり再読み込みしたりしても残ります。設定を変えると、新しい設定の履歴は空から始まります。抽選画面のカードをクリックすると、抽選対象の切り替えができます。',
     histResetH:'履歴をリセット',
-    histResetNote:'このブラウザに保存した抽選の履歴を消します。OBSで使っている場合、このボタンではOBSの履歴は消えないため、「対話」からRキーを押してください。',
+    histResetNote:'このブラウザに保存した抽選の履歴と進行状況のチェックを消します。OBSで使っている場合、このボタンではOBSの履歴は消えないため、「対話」からRキーを押してください。',
     histReset:'リセット', histCleared:'抽選の履歴をリセットしました',
     saveH:'設定を保存するには',
     saveNote:'今のアドレスバーのURLをブックマークしておけば、設定を保存しておけます。設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。',
@@ -302,8 +327,15 @@ var I18N = {
     scaleH:'カード一覧の大きさ',
     scaleNote:'カード一覧の大きさを、画面いっぱい（100%）を基準に縮小できます。結果画面と「ミニカード」の大きさは変わりません。',
     bgH:'背景色', bgChk:'背景色を付ける', bgNote:'チェックを外しているときは背景が透過されます。',
-    pinH:'ミニカード', pinChk:'結果画面の5秒後に自動でミニカードに切り替える',
-    pinNote:'決定したキャラを小さなカードにして、指定した位置に表示します。チェックを外していても、3キーで表示できます。位置は1920×1080の画面の左上を0としています。',
+    afterH:'結果画面のあと', after0:'そのまま表示しておく', after1:'5秒後にミニカードに切り替える', after2:'5秒後に非表示にする',
+    afterNote:'「非表示にする」を選ぶと、結果画面と背景が消えます。進行状況を表示している場合は、進行状況だけが残ります。',
+    pinH:'ミニカード',
+    pinNote:'決定したキャラを小さなカードにして、指定した位置に表示します。「結果画面のあと」で選ぶか、3キーで表示できます。位置は1920×1080の画面の左上を0としています。',
+    clearH:'進行状況（最大{0}件まで）', clearChk:'進行状況を表示する',
+    clearNote:'抽選対象のカードを横一列に並べ、抽選で決まったキャラを光らせます。ミニカードとは別に、どの画面でも表示されます。4キーで表示／非表示を切り替えられます。クリアしたときなどは、帯のカードをクリックするか、Cキーで直前に決まったキャラにチェックを付けてください（もう一度押すと外れます）。チェックしたカードはグレーアウトします。帯のカードを右クリックすると、光らせるキャラを付け替えられます。チェックはページを閉じても残り、Rキーで抽選の履歴と一緒にリセットされます。「同じ結果の連続を避ける」で「進行状況でチェックを付けたものは出さない」を選ぶと、チェックしたキャラは抽選から外れます（全部チェックすると全部が対象に戻ります）。',
+    clearMaxNote:'進行状況が使えるのは、抽選対象が{0}件までのときです。{0}件を超えると表示されません。',
+    clearW:'カードの幅（px）',
+    clearBoxNote:'枠の中は1920×1080の画面を縮小したものです。帯をドラッグすると移動できます。',
     btnH:'抽選ボタン', btnChk:'画面に「出撃する」「もう一度出撃」「一覧に戻る」ボタンを表示する',
     btnNote:'ボタンは配信画面にも映ります。映したくない場合はチェックを外してください（ソースを右クリック→「対話」を開き、画面をクリックしてからSpaceキーを押すと抽選できます）。',
     autoH:'自動抽選',autoChk:'画面が表示されたら自動で抽選する',
@@ -327,7 +359,11 @@ var I18N = {
     keyHide:'すべて非表示',
     keyResult:'結果画面',
     keyMini:'ミニカード',
-    keyReset:'「同じ結果の連続を避ける」の履歴をリセットする',
+    keyReset:'「同じ結果の連続を避ける」の履歴と進行状況のチェックをリセットする',
+    keyClear:'直前に決まったキャラのチェックを付け外しする（進行状況を使っているとき）',
+    keyClearBar:'進行状況の表示／非表示（進行状況を使っているとき）',
+    barClickLbl:'帯のカードをクリック', keyBarClick:'チェックを付け外しする（進行状況）',
+    barRclickLbl:'帯のカードを右クリック', keyBarRclick:'光らせるキャラを付け替える（進行状況）',
     clickLbl:'カードをクリック', keyToggle:'抽選対象を切り替える（「同じ結果の連続を避ける」を使っているとき）',
     logH:'更新履歴',
     usageH:'ご利用について',
@@ -364,10 +400,10 @@ var I18N = {
     add:'+ Add',
     allOn:'Check All', allOff:'Uncheck All',
     noRepH:'Avoid Repeats',
-    noRep0:'Off', noRep1:'Never the same as the last result', noRep2:'No repeats until every entry has come up',
+    noRep0:'Off', noRep1:'Never the same as the last result', noRep2:'No repeats until every entry has come up', noRep3:'Skip entries checked in Progress',
     noRepNote:'The draw history is kept even if you close or reload the page. When you change settings, the history for the new settings starts empty. Click a card on the picker screen to gray it out or restore it by hand.',
     histResetH:'Reset History',
-    histResetNote:'Clears the draw history saved in this browser. In OBS, this button does not clear OBS\'s history, so press R via "Interact".',
+    histResetNote:'Clears the draw history and Progress checks saved in this browser. In OBS, this button does not clear OBS\'s history, so press R via "Interact".',
     histReset:'Reset', histCleared:'Reset the draw history',
     saveH:'Saving Your Settings',
     saveNote:'Bookmark the URL in your address bar to save your settings. All settings live only in this page\'s URL; nothing is saved on a server.',
@@ -376,8 +412,15 @@ var I18N = {
     scaleH:'Card List Size',
     scaleNote:'Scales down the card list, with 100% filling the screen. Does not change the size of the result screen or the "Mini Card".',
     bgH:'Background Color', bgChk:'Use a background color', bgNote:'When unchecked, the background is transparent.',
-    pinH:'Mini Card', pinChk:'Switch to the mini card automatically 5 seconds after the result screen',
-    pinNote:'Shows the chosen Nightfarer as a small card at the set position. Even when unchecked, you can show it with the 3 key. Positions are measured from the top-left of a 1920×1080 screen.',
+    afterH:'After the Result Screen', after0:'Keep showing it', after1:'Switch to the mini card after 5 seconds', after2:'Hide it after 5 seconds',
+    afterNote:'"Hide" removes the result screen and the background. If Progress is shown, only Progress stays.',
+    pinH:'Mini Card',
+    pinNote:'Shows the chosen Nightfarer as a small card at the set position. Choose it under "After the Result Screen", or show it with the 3 key. Positions are measured from the top-left of a 1920×1080 screen.',
+    clearH:'Progress (up to {0} entries)', clearChk:'Show Progress',
+    clearNote:'Lines up the cards in the draw and highlights the Nightfarer just drawn. It is shown on every screen, separately from the mini card. Press 4 to show or hide it. When you clear a run, for example, click its card in the bar, or press C to check the Nightfarer just drawn (press again to uncheck). Checked cards are grayed out. Right-click a card in the bar to change which Nightfarer is highlighted. Checks stay after closing the page and are reset together with the draw history by the R key. Choose "Skip entries checked in Progress" under "Avoid Repeats" to leave checked Nightfarers out of the draw (once all are checked, all return to the draw).',
+    clearMaxNote:'Progress works when the draw has up to {0} entries. It is not shown with more than {0}.',
+    clearW:'Card width (px)',
+    clearBoxNote:'The box is a scaled-down 1920×1080 screen. Drag the bar to move it.',
     btnH:'Draw Button', btnChk:'Show the "Draw", "Draw Again", and "Back to List" buttons on screen',
     btnNote:'The button also appears on stream. To hide it, uncheck this (you can still draw by right-clicking the source → "Interact", clicking the screen, and pressing Space).',
     autoH:'Auto Draw', autoChk:'Draw automatically when the screen is shown',
@@ -401,7 +444,11 @@ var I18N = {
     keyHide:'Hide All',
     keyResult:'Result Screen',
     keyMini:'Mini Card',
-    keyReset:'Reset the "Avoid Repeats" history',
+    keyReset:'Reset the "Avoid Repeats" history and clear progress',
+    keyClear:'Check or uncheck the Nightfarer just drawn (when Progress is in use)',
+    keyClearBar:'Show or hide Progress (when Progress is in use)',
+    barClickLbl:'Click a card in the bar', keyBarClick:'Check or uncheck it (Progress)',
+    barRclickLbl:'Right-click a card in the bar', keyBarRclick:'Highlight it as the Nightfarer drawn (Progress)',
     clickLbl:'Click a card', keyToggle:'Gray it out or restore it (when "Avoid Repeats" is in use)',
     logH:'Changelog',
     usageH:'Usage',
@@ -415,6 +462,21 @@ var I18N = {
 };
 // 更新履歴（新しい順。編集画面の下に出す）
 var CHANGELOG = [
+  {date:'2026-10-28', ja:[
+    '「進行状況」を追加（抽選対象のカードとチェックを横一列で表示。4キーで表示／非表示。抽選対象10件まで）',
+    'Cキーで直前に決まったキャラにチェックを付けられるように',
+    '進行状況の帯のカードを右クリックして、光らせるキャラを付け替えられるように',
+    'Rキーで「同じ結果の連続を避ける」の履歴と一緒に進行状況のチェックもリセットするように',
+    '「同じ結果の連続を避ける」に「進行状況でチェックを付けたものは出さない」を追加',
+    '「結果画面のあと」を追加（そのまま／5秒後にミニカードに切り替える／5秒後に非表示にする）'
+  ], en:[
+    'Added "Progress" (shows the cards in the draw and their checks in a row; press 4 to show or hide it; up to 10 entries)',
+    'Press C to check the Nightfarer just drawn',
+    'Right-click a card in the Progress bar to change which Nightfarer is highlighted',
+    'The R key now resets Progress checks together with the "Avoid Repeats" history',
+    'Added "Skip entries checked in Progress" to "Avoid Repeats"',
+    'Added "After the Result Screen" (keep showing / switch to the mini card after 5 seconds / hide after 5 seconds)'
+  ]},
   {date:'2026-10-24', ja:[
     '「抽選画面のURL」を「OBS用URL」に名称変更',
     'OBS用URLの下に「設定を変更したらOBSに貼ったURLも差し替える」旨の注意書きを追加',
@@ -480,15 +542,19 @@ var CANVAS_W = 1920, CANVAS_H = 1080; // 表示サイズは固定
 var SCALE_MIN = 30, SCALE_MAX = 100;
 var HIST_KEY = 'nightreign-picker-history', HIST_MAX = 20; // 連続を避ける履歴の保存先（localStorage）と、残す設定の数
 var PIN_DELAY_MS = 5000; // 結果画面を見せてから指定位置表示に切り替えるまで
+var CLEAR_MAX = 10; // 進行状況を出せる抽選対象の数（横一列に並べるので多いと入らない）
+var CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 var SOUND_ENABLED = false; // 効果音はOBSでブチブチ鳴る問題が解決するまで止めている（オプションも出さない）
 var DEFAULT = {
   autoStart:false, // ブラウザで使うのが基本なので手動抽選が初期値（OBSでシーン切替に合わせたいときにON）
   button:true, // 画面に「抽選する」ボタンを出す
   sound:{on:false, vol:15}, // 効果音（抽選中の鼓動・決定時の音）と音量%
   scale:100, // カード一覧の大きさ（%）。結果画面は固定
-  noRepeat:0, // 連続を避ける：0=しない 1=前回と同じものは出さない 2=全部出るまで同じものは出さない
+  noRepeat:0, // 連続を避ける：0=しない 1=前回と同じものは出さない 2=全部出るまで同じものは出さない 3=クリアのチェックを付けたものは出さない
   bg:{on:true, color:'#000000', alpha:80}, // 抽選画面の背景色と不透明度%（OFFなら透過）
-  pin:{on:false, x:1050, y:840, w:160}, // 決定後に当選カードを置く位置（1920×1080基準・カード左上・幅px）
+  pin:{on:false, x:1050, y:840, w:160}, // 決定後に当選カードを置く位置（1920×1080基準・カード左上・幅px）。onは結果画面の5秒後にミニカードへ切り替えるか
+  hideAfter:false, // 結果画面の5秒後に非表示にする（pin.onとどちらか一方）
+  clear:{on:false, x:0, y:990, w:72}, // 進行状況の帯の位置（1920×1080基準・帯の左上）とカード1枚の幅px
   lang:'ja', // 表示言語（ja / en）
   entries: CHARS.map(function(c){ return {concept:'', charId:c.id, enabled:true}; })
 };
@@ -501,14 +567,17 @@ function bgCss(bg){
 }
 
 // ---------- URLとの相互変換（設定はすべて ?d= に入る） ----------
-// ミニカード：自動切り替えONなら [X, Y, 幅]、OFFで位置を変えていれば [X, Y, 幅, 0]、OFFで初期位置なら 0
-function pinParam(p){
+// ミニカード・進行状況：ONなら [X, Y, 幅]、OFFで位置を変えていれば [X, Y, 幅, 0]、OFFで初期位置なら 0
+function posParam(p, d){
   if(p.on) return [p.x, p.y, p.w];
-  var d = DEFAULT.pin;
   return p.x === d.x && p.y === d.y && p.w === d.w ? 0 : [p.x, p.y, p.w, 0];
 }
+function posOf(a, d){
+  return Array.isArray(a) ? {on:a[3] !== 0, x:Number(a[0])||0, y:Number(a[1])||0, w:Number(a[2])||d.w} : JSON.parse(JSON.stringify(d));
+}
 function encode(st){
-  var o = {v:1, l:st.lang, a:st.autoStart?1:0, k:st.button?1:0, m:st.sound.on ? st.sound.vol : 0, z:st.scale, r:st.noRepeat, b:st.bg.on ? bgCss(st.bg) : 0, p:pinParam(st.pin),
+  var o = {v:1, l:st.lang, a:st.autoStart?1:0, k:st.button?1:0, m:st.sound.on ? st.sound.vol : 0, z:st.scale, r:st.noRepeat, b:st.bg.on ? bgCss(st.bg) : 0,
+    p:posParam(st.pin, DEFAULT.pin), h:st.hideAfter?1:0, c:posParam(st.clear, DEFAULT.clear),
     e:st.entries.map(function(e){ return [e.concept, e.charId, e.enabled?1:0]; })};
   var bytes = new TextEncoder().encode(JSON.stringify(o)), bin = '';
   bytes.forEach(function(b){ bin += String.fromCharCode(b); });
@@ -527,12 +596,14 @@ function decode(str){
       // m：0か無しならOFF、1〜100なら音量%でON
       sound: o.m >= 1 && o.m <= 100 ? {on:true, vol:Math.round(o.m)} : {on:false, vol:DEFAULT.sound.vol},
       scale: Math.min(SCALE_MAX, Math.max(SCALE_MIN, Number(o.z) || DEFAULT.scale)),
-      noRepeat: [0, 1, 2].indexOf(o.r) >= 0 ? o.r : DEFAULT.noRepeat,
+      noRepeat: [0, 1, 2, 3].indexOf(o.r) >= 0 ? o.r : DEFAULT.noRepeat,
       bg: /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(o.b)
         ? {on:true, color:o.b.slice(0,7), alpha:o.b.length === 9 ? Math.round(parseInt(o.b.slice(7), 16) / 255 * 100) : 100}
         // b:0 は明示的にOFF。bが無い古いURLは初期値（ON）
         : {on:o.b === undefined ? DEFAULT.bg.on : false, color:DEFAULT.bg.color, alpha:DEFAULT.bg.alpha},
-      pin: Array.isArray(o.p) ? {on:o.p[3] !== 0, x:Number(o.p[0])||0, y:Number(o.p[1])||0, w:Number(o.p[2])||DEFAULT.pin.w} : JSON.parse(JSON.stringify(DEFAULT.pin)),
+      pin: posOf(o.p, DEFAULT.pin),
+      hideAfter: !!o.h && !posOf(o.p, DEFAULT.pin).on, // hが無い古いURLはOFF
+      clear: posOf(o.c, DEFAULT.clear), // cが無い古いURLはOFF
       entries: (o.e || []).slice(0, MAX_ENTRIES).map(function(x){ return {concept:String(x[0]||''), charId:String(x[1]||''), enabled:!!x[2]}; })
     };
   }catch(e){ return null; }
@@ -588,16 +659,42 @@ function makeCell(e){
   return cell;
 }
 // ミニカード用に見出しを整理する（小さいのでキャラ名は出さず、コンセプトだけをキャラ名の位置に大きめに。無ければ見出しの段ごと削って正方形にする）
-function toPinCell(cell, e){
+// keepName：コンセプトが無いときに見出しを消さず、キャラ名を出す（進行状況の帯用）
+function toPinCell(cell, e, keepName){
   var label = cell.querySelector('.label');
   if(e.concept){
     label.querySelector('.sub').remove();
     label.querySelector('.ttl').textContent = e.concept;
-  } else if(label) label.remove();
+  } else if(keepName) label.querySelector('.sub').remove();
+  else if(label) label.remove();
   cell.classList.add('pinc');
 }
 // 上の段を削って正方形にするので、下端の位置が変わらないよう削った分だけ下げる
 function pinTop(e, p){ return p.y + Math.round(p.w / 3); }
+// 進行状況の帯（抽選画面と編集画面の位置調整プレビューで共用）。cells[i] が entries[i] に対応する
+function makeClearBar(entries, c){
+  var cells = entries.map(function(e){
+    var cell = makeCell(e);
+    toPinCell(cell, e, true);
+    var mark = el('span', {className:'cl-mark'});
+    mark.innerHTML = CHECK_SVG;
+    cell.appendChild(mark);
+    return cell;
+  });
+  var bar = el('div', {className:'clear-bar'}, [el('div', {className:'cl-row'}, cells)]);
+  bar.style.left = c.x + 'px';
+  bar.style.top = c.y + 'px';
+  bar.style.setProperty('--cw', c.w + 'px');
+  return {el:bar, cells:cells};
+}
+// 帯の見た目を塗る。cleared：クリア済みの番号 → true、cur：抽選で決まったカードの番号（無ければ -1）
+function paintClearBar(b, cleared, cur){
+  b.cells.forEach(function(c, i){
+    c.classList.toggle('cleared', !!cleared[i]);
+    c.classList.toggle('cur', i === cur);
+  });
+  b.el.classList.toggle('has-cur', cur >= 0);
+}
 
 // ショートカットキー一覧の1グループ（見出し＋キーと説明の表）
 function keyList(head, rows){
@@ -683,19 +780,20 @@ function startDisplay(){
   // 連続を避けるための当選履歴。企画が途中で止まっても続きから使えるよう、ブラウザ（OBSならOBSのブラウザ）に保存する。
   // 設定が変わると別の履歴になるよう、?d= ごとに分けて持つ。保存できない環境ではメモリだけで動く
   var histId = params.get('d') || '';
-  var lastWinner = -1, usedWinners = {};
+  var lastWinner = -1, usedWinners = {}, cleared = {}; // cleared：進行状況でチェックを付けたカード
   function loadHistory(){
     try{
       var h = (JSON.parse(localStorage.getItem(HIST_KEY)) || {})[histId];
       if(!h) return;
       if(h.last >= 0 && h.last < cells.length) lastWinner = h.last;
       (h.used || []).forEach(function(i){ if(i >= 0 && i < cells.length) usedWinners[i] = true; });
+      (h.clear || []).forEach(function(i){ if(i >= 0 && i < cells.length) cleared[i] = true; });
     }catch(e){}
   }
   function saveHistory(){
     try{
       var all = JSON.parse(localStorage.getItem(HIST_KEY)) || {};
-      all[histId] = {last:lastWinner, used:Object.keys(usedWinners).map(Number), at:Date.now()};
+      all[histId] = {last:lastWinner, used:Object.keys(usedWinners).map(Number), clear:Object.keys(cleared).map(Number), at:Date.now()};
       // 設定を変えるたびに増えるので、新しいものから HIST_MAX 件だけ残す
       Object.keys(all).sort(function(a, b){ return all[b].at - all[a].at; }).slice(HIST_MAX).forEach(function(k){ delete all[k]; });
       localStorage.setItem(HIST_KEY, JSON.stringify(all));
@@ -713,6 +811,11 @@ function startDisplay(){
     }
     // 1：前回と同じものだけ外す
     if(state.noRepeat === 1 && cand.length > 1) cand = cand.filter(function(i){ return i !== lastWinner; });
+    // 3：クリアのチェックを付けたものを外す（全部チェックされたら全部を対象にする）
+    if(state.noRepeat === 3){
+      var uncleared = cand.filter(function(i){ return !cleared[i]; });
+      if(uncleared.length) cand = uncleared;
+    }
     return cand;
   }
   function recordWinner(i){
@@ -722,8 +825,45 @@ function startDisplay(){
   }
   // Rキーで履歴を手動リセットする。抽選中は演出を崩さないよう、グレーアウトの塗り直しだけ次の抽選に任せる
   function clearHistory(){
-    lastWinner = -1; usedWinners = {};
+    lastWinner = -1; usedWinners = {}; cleared = {};
     saveHistory();
+    paintClear();
+    if(!running) paintExcluded();
+  }
+  // 進行状況の帯。抽選対象が CLEAR_MAX 件以下のときだけ出す（画面の切り替えとは別に、4キーで出し入れする）
+  var clearBar = state.clear.on && cells.length && cells.length <= CLEAR_MAX ? makeClearBar(pool, state.clear) : null;
+  if(clearBar){
+    canvas.appendChild(clearBar.el);
+    clearBar.cells.forEach(function(c, i){
+      c.addEventListener('click', function(){ toggleCleared(i); });
+      c.addEventListener('contextmenu', function(ev){ ev.preventDefault(); setCurrent(i); });
+    });
+  }
+  // 4キーで帯を出し入れする。0キーのすべて非表示で消えているときも、ほかは非表示のまま帯だけ出す
+  function toggleClearBar(){
+    if(!clearBar) return;
+    var cl = canvas.classList, visible = !cl.contains('clear-off') && (!cl.contains('hidden') || cl.contains('keep-clear'));
+    if(visible){ cl.add('clear-off'); return; }
+    cl.remove('clear-off');
+    if(cl.contains('hidden')) cl.add('keep-clear');
+  }
+  // 帯のカードの右クリックで、抽選で決まったキャラを付け替える（押し間違いや抽選のやり直しの修正用。同じカードならもう一度で解除）。
+  // 2・3キーやCキーもこのキャラが対象になる。ミニカード・結果画面を出していれば出し直す
+  function setCurrent(i){
+    if(running) return;
+    lastWin = lastWin === i ? -1 : i;
+    paintClear();
+    var hidden = canvas.classList.contains('hidden');
+    if(pinEl && !hidden){ pinEl.remove(); pinEl = null; if(lastWin >= 0) pinWinner(lastWin); else unpin(); }
+    else if(resultEl.classList.contains('show') && !hidden){ if(lastWin >= 0) showResult(lastWin, false); else reset(); }
+  }
+  function paintClear(){ if(clearBar) paintClearBar(clearBar, cleared, lastWin); }
+  // 帯のカードのクリック・Cキー（・連動中は一覧のカードのクリック）で、クリアのチェックを付け外しする
+  function toggleCleared(i){
+    if((!clearBar && state.noRepeat !== 3) || i < 0) return;
+    if(cleared[i]) delete cleared[i]; else cleared[i] = true;
+    saveHistory();
+    paintClear();
     if(!running) paintExcluded();
   }
   // 抽選前の一覧でカードをクリックすると、グレーアウトを付け外しする（途中で止まった企画の続きを手で合わせる用）。
@@ -735,6 +875,8 @@ function startDisplay(){
       if(Object.keys(usedWinners).length >= cells.length) usedWinners = {}; // 全部に印が付いたら、抽選で一巡したときと同じく戻す
     }
     else if(state.noRepeat === 1) lastWinner = lastWinner === i ? -1 : i;
+    // 3：クリアのチェックを付け外しする（帯のカードをクリックしたときと同じ）
+    else if(state.noRepeat === 3){ toggleCleared(i); return; }
     else return;
     saveHistory();
     paintExcluded();
@@ -809,7 +951,7 @@ function startDisplay(){
   // ミニカードを消す（0キーの全部非表示も解除して、背景を戻す）
   function unpin(){
     clearTimeout(pinTimer); pinTimer = null;
-    canvas.classList.remove('pinned', 'hidden');
+    canvas.classList.remove('pinned', 'hidden', 'keep-clear');
     if(bgEl) bgEl.classList.remove('off');
     if(pinEl){ pinEl.remove(); pinEl = null; }
   }
@@ -883,6 +1025,7 @@ function startDisplay(){
   function finish(i){
     recordWinner(i);
     lastWin = i;
+    paintClear();
     playSe('decide');
     running = false;
     stage.classList.remove('running');
@@ -908,16 +1051,22 @@ function startDisplay(){
     resultEl.innerHTML = '';
     resultEl.appendChild(big);
     resultEl.appendChild(el('div', {className:'r-text'}, [el('div', {className:'r-label', text:t('next')}), rName]));
-    // ミニカードがONなら、結果画面はすぐ切り替わって押せないので「もう一度」は出さない
-    var againBtn = auto && state.pin.on ? null : drawButton(t('again'));
+    // 5秒後に切り替える設定なら、結果画面はすぐ消えて押せないので「もう一度」は出さない
+    var againBtn = auto && (state.pin.on || state.hideAfter) ? null : drawButton(t('again'));
     if(againBtn) resultEl.appendChild(el('div', {className:'r-btns'}, [againBtn,
       el('button', {className:'back-link', text:t('back'), onclick:function(){ this.blur(); reset(); }})]));
     resultEl.classList.add('show');
     if(auto && state.pin.on) pinTimer = setTimeout(function(){ pinWinner(i); }, PIN_DELAY_MS);
+    // 非表示にするときは、結果画面と背景をフェードアウトさせる（進行状況は残す）。ほかのキーやボタンで戻せる
+    else if(auto && state.hideAfter) pinTimer = setTimeout(function(){
+      pinTimer = null;
+      canvas.classList.add('hidden', 'keep-clear');
+      if(bgEl) bgEl.classList.add('off');
+    }, PIN_DELAY_MS);
   }
   // 3キーでミニカードを出す。自動切り替えがOFFでも、設定した位置（無ければ初期位置）に出す
   function showMini(i){
-    canvas.classList.remove('hidden');
+    canvas.classList.remove('hidden', 'keep-clear');
     if(pinEl) return;
     clearTimeout(pinTimer); pinTimer = null;
     pinWinner(i);
@@ -952,6 +1101,10 @@ function startDisplay(){
     else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && (!ev.key || ev.key === 'Unidentified') && ((ev.keyCode >= 48 && ev.keyCode <= 51) || (ev.keyCode >= 96 && ev.keyCode <= 99))){ ev.preventDefault(); switchScreen(ev.keyCode % 48); }
     // Ctrl+R（再読み込み）などは邪魔しない
     else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && (ev.code === 'KeyR' || ev.key === 'r' || ev.key === 'R' || ev.keyCode === 82)){ ev.preventDefault(); clearHistory(); }
+    // Cで直前に決まったキャラのクリアのチェックを付け外し（Ctrl+Cのコピーは邪魔しない）
+    else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && (ev.code === 'KeyC' || ev.key === 'c' || ev.key === 'C' || ev.keyCode === 67)){ ev.preventDefault(); if(!running) toggleCleared(lastWin); }
+    // 4で進行状況の表示／非表示（テンキーも可。ev.keyが取れないときだけkeyCodeを見る）
+    else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && (ev.key === '4' || ((!ev.key || ev.key === 'Unidentified') && (ev.keyCode === 52 || ev.keyCode === 100)))){ ev.preventDefault(); toggleClearBar(); }
   });
   // OBSで非表示になったら抽選前の状態に戻し、表示されたら（自動抽選ONなら）抽選する。
   // 目のアイコンでの表示切替（Visible）とシーン切替（Active）の両方を拾う
@@ -962,6 +1115,7 @@ function startDisplay(){
   window.addEventListener('obsSourceActiveChanged', function(ev){ if(ev.detail) onObsShow(ev.detail.active); });
   window.addEventListener('obsSourceVisibleChanged', function(ev){ if(ev.detail) onObsShow(ev.detail.visible); });
   paintExcluded();
+  paintClear();
   if(state.autoStart) later(draw, 700);
 }
 
@@ -980,6 +1134,7 @@ function startEditor(){
     obsInput.value = displayUrl(state);
     countEl.textContent = t('count', state.entries.length, MAX_ENTRIES);
     refreshPinCard();
+    refreshClear();
     if(reloadPreview !== false){
       clearTimeout(frameTimer);
       frameTimer = setTimeout(function(){ frame.src = displayUrl(state); }, 500);
@@ -1104,6 +1259,72 @@ function startEditor(){
   if(window.ResizeObserver) new ResizeObserver(fitPin).observe(pinBox);
   else window.addEventListener('resize', fitPin);
 
+  // ---- 進行状況：数値入力＋ドラッグで動かせる位置調整プレビュー ----
+  var CLEAR_LIMIT = {x:[0, CANVAS_W], y:[0, CANVAS_H], w:[30, 160]};
+  var clearInputs = {};
+  function clearField(label, key){
+    clearInputs[key] = el('input', {type:'number', min:CLEAR_LIMIT[key][0], max:CLEAR_LIMIT[key][1], step:1, value:state.clear[key], oninput:function(){
+      var v = Math.round(Number(this.value));
+      if(this.value === '' || isNaN(v)) return;
+      state.clear[key] = Math.min(CLEAR_LIMIT[key][1], Math.max(CLEAR_LIMIT[key][0], v)); sync();
+    }});
+    return el('div', {className:'field'}, [el('label', {text:label}), clearInputs[key]]);
+  }
+  var clearStage = el('div', {className:'pp-stage'});
+  var clearBox = el('div', {className:'pp-box'}, [clearStage]);
+  var clearWarn = el('p', {className:'ed-note', text:t('clearMaxNote', CLEAR_MAX)}); // 常に出し、超えているときだけ赤くする
+  var clearChk = el('input', {type:'checkbox', checked:state.clear.on, onchange:function(){ state.clear.on = this.checked; sync(); }});
+  var clearPv = null, clearKey = '';
+  function clearEntries(){ return state.entries.filter(function(e){ return e.enabled; }); }
+  // 帯は抽選対象（先頭からCLEAR_MAX件）で作り、中身か幅が変わったときだけ作り直す（ドラッグ中に作り直すと掴んだ要素が消えるため）
+  function refreshClear(){
+    var es = clearEntries(), over = es.length > CLEAR_MAX;
+    clearWarn.style.color = over ? 'var(--danger)' : '';
+    clearFields.classList.toggle('disabled', !state.clear.on || over);
+    var shown = (es.length ? es : state.entries).slice(0, CLEAR_MAX);
+    var key = JSON.stringify(shown.map(function(e){ return [e.concept, e.charId]; })) + state.clear.w;
+    if(key !== clearKey){
+      clearKey = key;
+      if(clearPv) clearPv.el.remove();
+      clearPv = makeClearBar(shown, state.clear);
+      // 見え方が分かるよう、先頭2枚をクリア済み、3枚目を抽選で決まったカードにしておく
+      paintClearBar(clearPv, {0:true, 1:true}, Math.min(2, shown.length - 1));
+      clearPv.el.addEventListener('pointerdown', dragClear);
+      clearStage.appendChild(clearPv.el);
+    }
+    clearPv.el.style.left = state.clear.x + 'px';
+    clearPv.el.style.top = state.clear.y + 'px';
+  }
+  function dragClear(ev){
+    ev.preventDefault();
+    var bar = clearPv.el, k = clearBox.clientWidth / CANVAS_W, sx = ev.clientX, sy = ev.clientY;
+    var start = {x:state.clear.x, y:state.clear.y};
+    bar.setPointerCapture(ev.pointerId);
+    function onMove(m){
+      // 画面の外にはみ出さないようにする
+      state.clear.x = Math.round(Math.min(CANVAS_W - bar.offsetWidth, Math.max(0, start.x + (m.clientX - sx) / k)));
+      state.clear.y = Math.round(Math.min(CANVAS_H - bar.offsetHeight, Math.max(0, start.y + (m.clientY - sy) / k)));
+      clearInputs.x.value = state.clear.x; clearInputs.y.value = state.clear.y;
+      sync();
+    }
+    function onUp(){ bar.removeEventListener('pointermove', onMove); bar.removeEventListener('pointerup', onUp); bar.removeEventListener('pointercancel', onUp); }
+    bar.addEventListener('pointermove', onMove);
+    bar.addEventListener('pointerup', onUp);
+    bar.addEventListener('pointercancel', onUp);
+  }
+  var clearFields = el('div', {className:'pin-block'}, [
+    el('div', {className:'pin-fields'}, [
+      clearField(t('pinX'), 'x'),
+      clearField(t('pinY'), 'y'),
+      clearField(t('clearW'), 'w')
+    ]),
+    clearBox,
+    el('p', {className:'ed-note', text:t('clearBoxNote')})
+  ]);
+  function fitClear(){ clearStage.style.setProperty('--k', clearBox.clientWidth / CANVAS_W); }
+  if(window.ResizeObserver) new ResizeObserver(fitClear).observe(clearBox);
+  else window.addEventListener('resize', fitClear);
+
   var scaleOut = el('span', {className:'scale-out', text:state.scale + '%'});
   var bgPicker = el('input', {type:'color', value:state.bg.color, oninput:function(){ state.bg.color = this.value; sync(); }});
   var bgAlphaOut = el('span', {className:'scale-out', text:state.bg.alpha + '%'});
@@ -1141,7 +1362,7 @@ function startEditor(){
     el('div', {className:'opts'}, [
       el('div', {className:'opt'}, [
         el('div', {className:'radios'}, [
-          [t('noRep0'), 0], [t('noRep1'), 1], [t('noRep2'), 2]
+          [t('noRep0'), 0], [t('noRep1'), 1], [t('noRep2'), 2], [t('noRep3'), 3]
         ].map(function(r){
           return el('label', {className:'chk'}, [el('input', {type:'radio', name:'noRepeat', checked:state.noRepeat === r[1], onchange:function(){ state.noRepeat = r[1]; sync(); }}), r[0]]);
         })),
@@ -1187,11 +1408,18 @@ function startEditor(){
         bgControls,
         el('p', {className:'ed-note', text:t('bgNote')})
       ]),
+      // ミニカードへの切り替えと非表示は同時に使えないので、1つを選ぶ
       el('div', {className:'opt'}, [
-        el('h3', {text:t('pinH')}),
-        el('label', {className:'chk'}, [el('input', {type:'checkbox', checked:state.pin.on, onchange:function(){ state.pin.on = this.checked; sync(); }}), t('pinChk')]),
-        el('p', {className:'ed-note', text:t('pinNote')}),
-        pinFields
+        el('h3', {text:t('afterH')}),
+        el('div', {className:'radios'}, [
+          [t('after0'), 0], [t('after1'), 1], [t('after2'), 2]
+        ].map(function(r){
+          var cur = state.pin.on ? 1 : state.hideAfter ? 2 : 0;
+          return el('label', {className:'chk'}, [el('input', {type:'radio', name:'after', checked:cur === r[1], onchange:function(){
+            state.pin.on = r[1] === 1; state.hideAfter = r[1] === 2; sync();
+          }}), r[0]]);
+        })),
+        el('p', {className:'ed-note', style:'margin-top:12px', text:t('afterNote')})
       ]),
       el('div', {className:'opt'}, [
         el('h3', {text:t('btnH')}),
@@ -1212,6 +1440,19 @@ function startEditor(){
           el('p', {className:'ed-note'}, [el('span', {className:'case-h', text:t('soundCase1H')}), t('soundCase1')]),
           el('p', {className:'ed-note'}, [el('span', {className:'case-h', text:t('soundCase2H')}), t('soundCase2')])
         ])
+      ]),
+      // 位置調整のプレビューが大きいので、ミニカードと進行状況は最後に置く
+      el('div', {className:'opt'}, [
+        el('h3', {text:t('pinH')}),
+        el('p', {className:'ed-note', text:t('pinNote')}),
+        pinFields
+      ]),
+      el('div', {className:'opt'}, [
+        el('h3', {text:t('clearH', CLEAR_MAX)}),
+        clearWarn,
+        el('label', {className:'chk'}, [clearChk, t('clearChk')]),
+        el('p', {className:'ed-note', text:t('clearNote')}),
+        clearFields
       ])
     ])
   ]);
@@ -1287,8 +1528,8 @@ function startEditor(){
     el('div', {className:'howto'}, [
       el('h2', {text:t('keysH')}),
       el('p', {className:'howto-note keys-note', text:t('keysNote')}),
-      keyList('keysOpH', [[['Space'], 'keyDraw'], [['Enter'], 'keyDraw'], [['R'], 'keyReset'], [[t('clickLbl')], 'keyToggle']]),
-      keyList('keysScrH', [[['Esc'], 'keyBack'], [['1'], 'keyBack'], [['2'], 'keyResult'], [['3'], 'keyMini'], [['0'], 'keyHide']])
+      keyList('keysOpH', [[['Space'], 'keyDraw'], [['Enter'], 'keyDraw'], [['R'], 'keyReset'], [['C'], 'keyClear'], [[t('clickLbl')], 'keyToggle'], [[t('barClickLbl')], 'keyBarClick'], [[t('barRclickLbl')], 'keyBarRclick']]),
+      keyList('keysScrH', [[['Esc'], 'keyBack'], [['1'], 'keyBack'], [['2'], 'keyResult'], [['3'], 'keyMini'], [['4'], 'keyClearBar'], [['0'], 'keyHide']])
     ]),
     el('div', {className:'ed-cols'}, [obsLeft, obsRight]),
     usage,
