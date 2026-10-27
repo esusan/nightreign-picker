@@ -50,7 +50,7 @@ body.edit{background:#0f0e14;font-size:14px}
 
 /* ---------- 表示 ---------- */
 /* 1920×1080で固定レイアウトし、ウィンドウに合わせて拡大縮小する */
-#canvas{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--k,1))}
+#canvas{position:absolute;left:50%;top:50%;width:1920px;height:1080px;user-select:none;transform:translate(-50%,-50%) scale(var(--k,1))}
 #stage{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;user-select:none}
 /* 最終行が埋まらないときも中央に寄せるため、gridではなく幅固定のflex折り返しで並べる */
 #grid{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--gap,12px);
@@ -362,6 +362,7 @@ var I18N = {
     keyReset:'「同じ結果の連続を避ける」の履歴と進行状況のチェックをリセットする',
     keyClear:'直前に決まったキャラのチェックを付け外しする（進行状況を使っているとき）',
     keyClearBar:'進行状況の表示／非表示（進行状況を使っているとき）',
+    dblLbl:'画面をダブルクリック', keyDbl:'カード一覧（進行状況の帯の上と抽選中を除く）',
     barClickLbl:'帯のカードをクリック', keyBarClick:'チェックを付け外しする（進行状況）',
     barRclickLbl:'帯のカードを右クリック', keyBarRclick:'光らせるキャラを付け替える（進行状況）',
     clickLbl:'カードをクリック', keyToggle:'抽選対象を切り替える（「同じ結果の連続を避ける」を使っているとき）',
@@ -447,6 +448,7 @@ var I18N = {
     keyReset:'Reset the "Avoid Repeats" history and clear progress',
     keyClear:'Check or uncheck the Nightfarer just drawn (when Progress is in use)',
     keyClearBar:'Show or hide Progress (when Progress is in use)',
+    dblLbl:'Double-click the screen', keyDbl:'Card List (except on the Progress bar or during a draw)',
     barClickLbl:'Click a card in the bar', keyBarClick:'Check or uncheck it (Progress)',
     barRclickLbl:'Right-click a card in the bar', keyBarRclick:'Highlight it as the Nightfarer drawn (Progress)',
     clickLbl:'Click a card', keyToggle:'Gray it out or restore it (when "Avoid Repeats" is in use)',
@@ -468,6 +470,7 @@ var CHANGELOG = [
     '進行状況の帯のカードを右クリックして、光らせるキャラを付け替えられるように',
     'Rキーで「同じ結果の連続を避ける」の履歴と一緒に進行状況のチェックもリセットするように',
     '「同じ結果の連続を避ける」に「進行状況でチェックを付けたものは出さない」を追加',
+    '画面のダブルクリックでカード一覧に戻れるように',
     '「結果画面のあと」を追加（そのまま／5秒後にミニカードに切り替える／5秒後に非表示にする）'
   ], en:[
     'Added "Progress" (shows the cards in the draw and their checks in a row; press 4 to show or hide it; up to 10 entries)',
@@ -475,6 +478,7 @@ var CHANGELOG = [
     'Right-click a card in the Progress bar to change which Nightfarer is highlighted',
     'The R key now resets Progress checks together with the "Avoid Repeats" history',
     'Added "Skip entries checked in Progress" to "Avoid Repeats"',
+    'Double-click the screen to return to the card list',
     'Added "After the Result Screen" (keep showing / switch to the mini card after 5 seconds / hide after 5 seconds)'
   ]},
   {date:'2026-10-24', ja:[
@@ -1106,6 +1110,11 @@ function startDisplay(){
     // 4で進行状況の表示／非表示（テンキーも可。ev.keyが取れないときだけkeyCodeを見る）
     else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && (ev.key === '4' || ((!ev.key || ev.key === 'Unidentified') && (ev.keyCode === 52 || ev.keyCode === 100)))){ ev.preventDefault(); toggleClearBar(); }
   });
+  // キーに不慣れな人向けに、画面のダブルクリックでも一覧に戻す（抽選中・ボタンと進行状況の帯の上は除く。押し間違いで抽選を取り消さないため）
+  document.addEventListener('dblclick', function(ev){
+    if(running || (ev.target.closest && ev.target.closest('button, .clear-bar'))) return;
+    reset();
+  });
   // OBSで非表示になったら抽選前の状態に戻し、表示されたら（自動抽選ONなら）抽選する。
   // 目のアイコンでの表示切替（Visible）とシーン切替（Active）の両方を拾う
   function onObsShow(shown){
@@ -1529,7 +1538,7 @@ function startEditor(){
       el('h2', {text:t('keysH')}),
       el('p', {className:'howto-note keys-note', text:t('keysNote')}),
       keyList('keysOpH', [[['Space'], 'keyDraw'], [['Enter'], 'keyDraw'], [['R'], 'keyReset'], [['C'], 'keyClear'], [[t('clickLbl')], 'keyToggle'], [[t('barClickLbl')], 'keyBarClick'], [[t('barRclickLbl')], 'keyBarRclick']]),
-      keyList('keysScrH', [[['Esc'], 'keyBack'], [['1'], 'keyBack'], [['2'], 'keyResult'], [['3'], 'keyMini'], [['4'], 'keyClearBar'], [['0'], 'keyHide']])
+      keyList('keysScrH', [[['Esc'], 'keyBack'], [['1'], 'keyBack'], [[t('dblLbl')], 'keyDbl'], [['2'], 'keyResult'], [['3'], 'keyMini'], [['4'], 'keyClearBar'], [['0'], 'keyHide']])
     ]),
     el('div', {className:'ed-cols'}, [obsLeft, obsRight]),
     usage,
