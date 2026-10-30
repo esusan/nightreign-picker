@@ -30,7 +30,7 @@
   --line:#3a3644;
   --accent:#d9a93a;
   --danger:#d0574b;
-  --clear:#d9a93a; /* クリアの色（クリア演出のハンコと進行状況のチェックの丸で共通） */
+  --clear:#f4dc5c; /* クリアの色（クリア演出と進行状況のチェックの丸で共通。配信オーバーレイの黄色に合わせる） */
   --font:"LINE Seed JP","Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif; /* 編集画面。遺物ページと同じ */
   --font-display:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif; /* 抽選画面。ゲームに合わせて明朝 */
 }
@@ -131,7 +131,7 @@ body.edit{background:#0f0e14;font-size:14px}
 .cf-line.r{background:linear-gradient(270deg,transparent,var(--clear));transform-origin:left}
 #clearfx.show .cf-line{transform:none}
 .cf-word{font-family:"Cormorant Garamond",var(--font-display);font-weight:600;font-size:92px;line-height:1;letter-spacing:.5em;text-indent:.5em;color:var(--clear);
-  text-shadow:0 0 24px rgba(217,169,58,.45),0 0 4px #000;clip-path:inset(0 100% 0 0);transition:clip-path .8s cubic-bezier(.6,0,.2,1) .45s}
+  text-shadow:0 0 24px rgba(244,220,92,.45),0 0 4px #000;clip-path:inset(0 100% 0 0);transition:clip-path .8s cubic-bezier(.6,0,.2,1) .45s}
 #clearfx.show .cf-word{clip-path:inset(0 0 0 0)}
 #clearfx .cf-name{margin-top:-18px;font-size:30px;letter-spacing:.35em;text-indent:.35em;color:#eef1fb;text-shadow:0 0 10px #000,0 0 4px #000;
   opacity:0;transition:opacity .6s .9s}
