@@ -115,6 +115,8 @@ body.edit{background:#0f0e14;font-size:14px}
 #clearfx{position:absolute;left:50%;top:50%;z-index:5;transform:translate(-50%,-50%);opacity:0;pointer-events:none;transition:opacity .45s;
   display:flex;flex-direction:column;align-items:center;gap:44px}
 #clearfx.show{opacity:1}
+#cf-bg{position:fixed;inset:0;background:rgba(8,7,12,.82);opacity:0;pointer-events:none;transition:opacity .45s}
+#cf-bg.show{opacity:1}
 #clearfx .cf-card{position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.7);transform:translateY(16px);transition:transform .7s cubic-bezier(.2,.8,.2,1)}
 #clearfx.show .cf-card{transform:none}
 #clearfx .cell{aspect-ratio:1/1;border-color:var(--clear);box-shadow:none}
@@ -774,10 +776,12 @@ function startDisplay(){
   var rName = el('div', {className:'r-name'});
   var resultEl = el('div', {id:'result'});
   var clearFx = el('div', {id:'clearfx'});
+  var clearBg = el('div', {id:'cf-bg'}); // クリア演出の間だけ敷く背景（背景色の設定がOFFでも出す）
   var bgEl = state.bg.on ? el('div', {id:'bg'}) : null;
   if(bgEl) bgEl.style.background = bgCss(state.bg);
   var canvas = el('div', {id:'canvas'}, [stage, resultEl, clearFx]);
   if(bgEl) app.appendChild(bgEl);
+  app.appendChild(clearBg);
   app.appendChild(canvas);
   var cells = pool.map(function(e){
     var cell = makeCell(e);
@@ -923,6 +927,7 @@ function startDisplay(){
     clearFx.appendChild(name);
     void clearFx.offsetHeight;
     clearFx.classList.add('show');
+    clearBg.classList.add('show');
     canvas.classList.add('clearing');
     playSe('decide');
     clearTimeout(clearFxTimer);
@@ -931,6 +936,7 @@ function startDisplay(){
   function hideClearFx(){
     clearTimeout(clearFxTimer); clearFxTimer = null;
     clearFx.classList.remove('show');
+    clearBg.classList.remove('show');
     canvas.classList.remove('clearing');
   }
   // 抽選前の一覧でカードをクリックすると、グレーアウトを付け外しする（途中で止まった企画の続きを手で合わせる用）。
