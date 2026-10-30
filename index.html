@@ -30,6 +30,7 @@
   --line:#3a3644;
   --accent:#d9a93a;
   --danger:#d0574b;
+  --clear:#d9a93a; /* クリアの色（クリア演出のハンコと進行状況のチェックの丸で共通） */
   --font:"LINE Seed JP","Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif; /* 編集画面。遺物ページと同じ */
   --font-display:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif; /* 抽選画面。ゲームに合わせて明朝 */
 }
@@ -110,6 +111,33 @@ body.edit{background:#0f0e14;font-size:14px}
 #result .r-concept{margin-right:.3em}
 #result .cell{aspect-ratio:1/1}
 #result .cell .art img{-webkit-mask:none;mask:none}
+/* クリア演出：進行状況でチェックを付けたとき、中央のキャラ画像に金の光沢を走らせ、下に細い線と字間を広げた「CLEAR」を出す。出ている間は後ろの画面を隠す */
+#clearfx{position:absolute;left:50%;top:50%;z-index:5;transform:translate(-50%,-50%);opacity:0;pointer-events:none;transition:opacity .45s;
+  display:flex;flex-direction:column;align-items:center;gap:44px}
+#clearfx.show{opacity:1}
+#clearfx .cf-card{position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.7);transform:translateY(16px);transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+#clearfx.show .cf-card{transform:none}
+#clearfx .cell{aspect-ratio:1/1;border-color:var(--clear);box-shadow:none}
+#clearfx .cell .label{display:none}
+#clearfx .cell .art img{-webkit-mask:none;mask:none}
+/* 光沢：斜めの帯がカードを左上から右下へ1回だけ走る */
+.cf-card::after{content:"";position:absolute;inset:-20%;z-index:6;pointer-events:none;transform:translateX(-120%);
+  background:linear-gradient(105deg,transparent 40%,rgba(255,226,150,.0) 42%,rgba(255,226,150,.45) 50%,rgba(255,226,150,0) 58%,transparent 60%)}
+#clearfx.show .cf-card::after{animation:cfSheen .9s ease-in-out .35s forwards}
+@keyframes cfSheen{to{transform:translateX(120%)}}
+/* 文字：左右の細い線が中央から伸び、CLEARが左から現れる。名前は小さく添える */
+.cf-title{display:flex;align-items:center;gap:36px}
+.cf-line{width:220px;height:1px;background:linear-gradient(90deg,transparent,var(--clear));transform:scaleX(0);transform-origin:right;transition:transform .7s cubic-bezier(.2,.8,.2,1) .3s}
+.cf-line.r{background:linear-gradient(270deg,transparent,var(--clear));transform-origin:left}
+#clearfx.show .cf-line{transform:none}
+.cf-word{font-family:"Cormorant Garamond",var(--font-display);font-weight:600;font-size:92px;line-height:1;letter-spacing:.5em;text-indent:.5em;color:var(--clear);
+  text-shadow:0 0 24px rgba(217,169,58,.45),0 0 4px #000;clip-path:inset(0 100% 0 0);transition:clip-path .8s cubic-bezier(.6,0,.2,1) .45s}
+#clearfx.show .cf-word{clip-path:inset(0 0 0 0)}
+#clearfx .cf-name{margin-top:-18px;font-size:30px;letter-spacing:.35em;text-indent:.35em;color:#eef1fb;text-shadow:0 0 10px #000,0 0 4px #000;
+  opacity:0;transition:opacity .6s .9s}
+#clearfx.show .cf-name{opacity:.85}
+#clearfx .cf-name .r-concept{color:var(--muted)}
+#canvas.clearing #stage,#canvas.clearing #result,#canvas.clearing .pin{opacity:0}
 #result .r-text{padding:13px 76px;text-align:center;white-space:nowrap;
   background:linear-gradient(90deg,transparent,rgba(8,7,12,.92) 15%,rgba(8,7,12,.92) 85%,transparent);border-top:1px solid var(--gold-soft);border-bottom:1px solid var(--gold-soft)}
 #result .r-label{font-size:26px;letter-spacing:.15em;color:var(--muted)}
@@ -148,14 +176,14 @@ body.edit{background:#0f0e14;font-size:14px}
 .clear-bar .cell.pinc .label{padding:calc(var(--u)*8) 3% calc(var(--u)*24)}
 .clear-bar .cell.pinc .ttl{font-size:calc(var(--cw)*.18);letter-spacing:0;line-height:1.15;white-space:normal;word-break:break-all;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-/* 抽選で決まったキャラは光らせる。未チェックのカードは暗くしない（明るい＝残り、灰色＝済みで見分けるため） */
-.clear-bar .cell.cur{border-color:var(--gold);z-index:1;box-shadow:0 0 0 4px var(--gold),0 0 14px var(--gold),0 0 28px var(--gold-soft)}
+/* 抽選で決まったキャラは光らせる（チェックを付けたら外す）。未チェックのカードは暗くしない（明るい＝残り、灰色＝済みで見分けるため） */
+.clear-bar .cell.cur:not(.cleared){border-color:var(--gold);z-index:1;box-shadow:0 0 0 4px var(--gold),0 0 14px var(--gold),0 0 28px var(--gold-soft)}
 /* チェック済み：カードをしっかりグレーアウトし、右下に小さめの丸いバッジ＋チェックを付ける */
 .clear-bar .cell.cleared .art{filter:grayscale(1) brightness(.35)}
 .clear-bar .cell.cleared .ttl{color:#7d8190}
 /* グレーアウトした上でも埋もれないよう、金で塗りつぶした丸に暗い色のチェックを抜く */
 .cl-mark{display:none;position:absolute;right:5%;bottom:5%;width:32%;aspect-ratio:1/1;z-index:4;box-sizing:border-box;padding:6%;border-radius:50%;
-  color:#10121c;background:var(--gold);box-shadow:0 0 3px #000}
+  color:#10121c;background:var(--clear);box-shadow:0 0 3px #000}
 .cl-mark svg{display:block;width:100%;height:100%}
 .cell.cleared .cl-mark{display:block}
 
@@ -331,7 +359,7 @@ var I18N = {
     pinH:'ミニカード',
     pinNote:'決定したキャラを小さなカードにして、指定した位置に表示します。「結果画面のあと」で選ぶか、3キーで表示できます。位置は1920×1080の画面の左上を0としています。',
     clearH:'進行状況（最大{0}件まで）', clearChk:'進行状況を表示する',
-    clearNote:'抽選対象のカードを横一列に並べ、抽選で決まったキャラを光らせます。ミニカードとは別に、どの画面でも表示されます。4キーで表示／非表示を切り替えられます。クリアしたときなどは、帯のカードをクリックするか、Cキーで直前に決まったキャラにチェックを付けてください（もう一度押すと外れます）。チェックしたカードはグレーアウトします。帯のカードを右クリックすると、光らせるキャラを付け替えられます。チェックはページを閉じても残り、Rキーで抽選の履歴と一緒にリセットされます。「同じ結果の連続を避ける」で「進行状況でチェックを付けたものは出さない」を選ぶと、チェックしたキャラは抽選から外れます（全部チェックすると全部が対象に戻ります）。',
+    clearNote:'抽選対象のカードを横一列に並べ、抽選で決まったキャラを光らせます。ミニカードとは別に、どの画面でも表示されます。4キーで表示／非表示を切り替えられます。クリアしたときなどは、帯のカードをクリックするか、Cキーで直前に決まったキャラにチェックを付けてください（もう一度押すと外れます）。チェックしたカードはグレーアウトし、チェックを付けたときは中央にキャラと「CLEAR」の演出が少しのあいだ出ます。帯のカードを右クリックすると、光らせるキャラを付け替えられます。チェックはページを閉じても残り、Rキーで抽選の履歴と一緒にリセットされます。「同じ結果の連続を避ける」で「進行状況でチェックを付けたものは出さない」を選ぶと、チェックしたキャラは抽選から外れます（全部チェックすると全部が対象に戻ります）。',
     clearMaxNote:'進行状況が使えるのは、抽選対象が{0}件までのときです。{0}件を超えると表示されません。',
     clearW:'カードの幅（px）',
     clearBoxNote:'枠の中は1920×1080の画面を縮小したものです。帯をドラッグすると移動できます。',
@@ -417,7 +445,7 @@ var I18N = {
     pinH:'Mini Card',
     pinNote:'Shows the chosen Nightfarer as a small card at the set position. Choose it under "After the Result Screen", or show it with the 3 key. Positions are measured from the top-left of a 1920×1080 screen.',
     clearH:'Progress (up to {0} entries)', clearChk:'Show Progress',
-    clearNote:'Lines up the cards in the draw and highlights the Nightfarer just drawn. It is shown on every screen, separately from the mini card. Press 4 to show or hide it. When you clear a run, for example, click its card in the bar, or press C to check the Nightfarer just drawn (press again to uncheck). Checked cards are grayed out. Right-click a card in the bar to change which Nightfarer is highlighted. Checks stay after closing the page and are reset together with the draw history by the R key. Choose "Skip entries checked in Progress" under "Avoid Repeats" to leave checked Nightfarers out of the draw (once all are checked, all return to the draw).',
+    clearNote:'Lines up the cards in the draw and highlights the Nightfarer just drawn. It is shown on every screen, separately from the mini card. Press 4 to show or hide it. When you clear a run, for example, click its card in the bar, or press C to check the Nightfarer just drawn (press again to uncheck). Checked cards are grayed out, and a "CLEAR" effect shows the Nightfarer in the center for a moment. Right-click a card in the bar to change which Nightfarer is highlighted. Checks stay after closing the page and are reset together with the draw history by the R key. Choose "Skip entries checked in Progress" under "Avoid Repeats" to leave checked Nightfarers out of the draw (once all are checked, all return to the draw).',
     clearMaxNote:'Progress works when the draw has up to {0} entries. It is not shown with more than {0}.',
     clearW:'Card width (px)',
     clearBoxNote:'The box is a scaled-down 1920×1080 screen. Drag the bar to move it.',
@@ -463,6 +491,13 @@ var I18N = {
 };
 // 更新履歴（新しい順。編集画面の下に出す）
 var CHANGELOG = [
+  {date:'2026-10-30', ja:[
+    '進行状況でチェックを付けたときに、中央にキャラと「CLEAR」の演出を出すように',
+    '進行状況の見た目を調整（チェックしていないカードは明るいまま、チェック済みはより暗く、チェックを付けたら光る枠を外す）'
+  ], en:[
+    'Checking a card in Progress now shows a "CLEAR" effect with the Nightfarer in the center',
+    'Adjusted the look of Progress (unchecked cards stay bright, checked cards are darker, and the highlight frame goes away once checked)'
+  ]},
   {date:'2026-10-28', ja:[
     '「進行状況」を追加（抽選対象のカードとチェックを横一列で表示。4キーで表示／非表示。抽選対象10件まで）',
     'Cキーで直前に決まったキャラにチェックを付けられるように',
@@ -546,6 +581,7 @@ var SCALE_MIN = 30, SCALE_MAX = 100;
 var HIST_KEY = 'nightreign-picker-history', HIST_MAX = 20; // 連続を避ける履歴の保存先（localStorage）と、残す設定の数
 var PIN_DELAY_MS = 5000; // 結果画面を見せてから指定位置表示に切り替えるまで
 var CLEAR_MAX = 10; // 進行状況を出せる抽選対象の数（横一列に並べるので多いと入らない）
+var CLEAR_FX_MS = 2500; // チェックを付けたときのクリア演出を出しておく時間
 var CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 var SOUND_ENABLED = false; // 効果音はOBSでブチブチ鳴る問題が解決するまで止めている（オプションも出さない）
 var DEFAULT = {
@@ -737,9 +773,10 @@ function startDisplay(){
   var stage = el('div', {id:'stage'}, [grid, empty, stageBtn]);
   var rName = el('div', {className:'r-name'});
   var resultEl = el('div', {id:'result'});
+  var clearFx = el('div', {id:'clearfx'});
   var bgEl = state.bg.on ? el('div', {id:'bg'}) : null;
   if(bgEl) bgEl.style.background = bgCss(state.bg);
-  var canvas = el('div', {id:'canvas'}, [stage, resultEl]);
+  var canvas = el('div', {id:'canvas'}, [stage, resultEl, clearFx]);
   if(bgEl) app.appendChild(bgEl);
   app.appendChild(canvas);
   var cells = pool.map(function(e){
@@ -829,6 +866,7 @@ function startDisplay(){
   // Rキーで履歴を手動リセットする。抽選中は演出を崩さないよう、グレーアウトの塗り直しだけ次の抽選に任せる
   function clearHistory(){
     lastWinner = -1; usedWinners = {}; cleared = {};
+    hideClearFx();
     saveHistory();
     paintClear();
     if(!running) paintExcluded();
@@ -864,10 +902,36 @@ function startDisplay(){
   // 帯のカードのクリック・Cキー（・連動中は一覧のカードのクリック）で、クリアのチェックを付け外しする
   function toggleCleared(i){
     if((!clearBar && state.noRepeat !== 3) || i < 0) return;
-    if(cleared[i]) delete cleared[i]; else cleared[i] = true;
+    if(cleared[i]){ delete cleared[i]; hideClearFx(); } else { cleared[i] = true; if(!running) showClearFx(i); }
     saveHistory();
     paintClear();
     if(!running) paintExcluded();
+  }
+  // クリア演出。チェックを付けたときだけ、中央にキャラと「CLEAR」を CLEAR_FX_MS 出して消す（後ろの画面は出ている間だけ隠す）
+  var clearFxTimer = null;
+  function showClearFx(i){
+    var big = cells[i].cloneNode(true);
+    big.classList.remove('win', 'on', 'out');
+    big.style.setProperty('--cw', Math.floor(Math.min(CANVAS_H * 0.5 * 0.75, CANVAS_W * 0.3)) + 'px');
+    var name = el('div', {className:'cf-name'});
+    if(pool[i].concept) name.appendChild(el('span', {className:'r-concept', text:pool[i].concept}));
+    name.appendChild(document.createTextNode(charName(charOf(pool[i]))));
+    clearFx.innerHTML = '';
+    clearFx.classList.remove('show');
+    clearFx.appendChild(el('div', {className:'cf-card'}, [big]));
+    clearFx.appendChild(el('div', {className:'cf-title'}, [el('span', {className:'cf-line'}), el('span', {className:'cf-word', text:'CLEAR'}), el('span', {className:'cf-line r'})]));
+    clearFx.appendChild(name);
+    void clearFx.offsetHeight;
+    clearFx.classList.add('show');
+    canvas.classList.add('clearing');
+    playSe('decide');
+    clearTimeout(clearFxTimer);
+    clearFxTimer = setTimeout(hideClearFx, CLEAR_FX_MS);
+  }
+  function hideClearFx(){
+    clearTimeout(clearFxTimer); clearFxTimer = null;
+    clearFx.classList.remove('show');
+    canvas.classList.remove('clearing');
   }
   // 抽選前の一覧でカードをクリックすると、グレーアウトを付け外しする（途中で止まった企画の続きを手で合わせる用）。
   // 「全部出るまで」は出たカードの印を、「前回と同じものは出さない」は前回の当選を付け替える
@@ -965,6 +1029,7 @@ function startDisplay(){
     running = false; lastDrawAt = 0;
     stage.classList.remove('running');
     document.body.classList.add('instant');
+    hideClearFx();
     unpin();
     stage.classList.remove('done'); resultEl.classList.remove('show');
     cells.forEach(function(c){ c.classList.remove('win', 'on'); });
@@ -994,6 +1059,7 @@ function startDisplay(){
     running = true; lastDrawAt = now;
     stopSe(); playSe('beat');
     stage.classList.add('running');
+    hideClearFx();
     unpin();
     stage.classList.remove('done'); resultEl.classList.remove('show');
     cells.forEach(function(c){ c.classList.remove('win', 'on'); });
