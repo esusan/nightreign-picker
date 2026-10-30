@@ -115,7 +115,7 @@ body.edit{background:#0f0e14;font-size:14px}
 #clearfx{position:absolute;left:50%;top:50%;z-index:5;transform:translate(-50%,-50%);opacity:0;pointer-events:none;transition:opacity .45s;
   display:flex;flex-direction:column;align-items:center;gap:44px}
 #clearfx.show{opacity:1}
-#cf-bg{position:fixed;inset:0;background:rgba(8,7,12,.82);opacity:0;pointer-events:none;transition:opacity .45s}
+#cf-bg{position:fixed;inset:0;opacity:0;pointer-events:none;transition:opacity .45s}
 #cf-bg.show{opacity:1}
 #clearfx .cf-card{position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.7);transform:translateY(16px);transition:transform .7s cubic-bezier(.2,.8,.2,1)}
 #clearfx.show .cf-card{transform:none}
@@ -776,7 +776,8 @@ function startDisplay(){
   var rName = el('div', {className:'r-name'});
   var resultEl = el('div', {id:'result'});
   var clearFx = el('div', {id:'clearfx'});
-  var clearBg = el('div', {id:'cf-bg'}); // クリア演出の間だけ敷く背景（背景色の設定がOFFでも出す）
+  var clearBg = el('div', {id:'cf-bg'}); // クリア演出の間だけ敷く背景。「背景色」で設定した色・不透明度を使う（設定がOFFでも出す）
+  clearBg.style.background = bgCss(state.bg);
   var bgEl = state.bg.on ? el('div', {id:'bg'}) : null;
   if(bgEl) bgEl.style.background = bgCss(state.bg);
   var canvas = el('div', {id:'canvas'}, [stage, resultEl, clearFx]);
@@ -927,7 +928,8 @@ function startDisplay(){
     clearFx.appendChild(name);
     void clearFx.offsetHeight;
     clearFx.classList.add('show');
-    clearBg.classList.add('show');
+    // 背景色がすでに出ているときは重ねない（二重に暗くなるため）
+    if(!bgEl || bgEl.classList.contains('off')) clearBg.classList.add('show');
     canvas.classList.add('clearing');
     playSe('decide');
     clearTimeout(clearFxTimer);
