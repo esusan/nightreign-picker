@@ -391,7 +391,7 @@ var I18N = {
     keyReset:'「同じ結果の連続を避ける」の履歴と進行状況のチェックをリセットする',
     keyClear:'直前に決まったキャラのチェックを付け外しする（進行状況を使っているとき）',
     keyClearBar:'進行状況の表示／非表示（進行状況を使っているとき）',
-    dblLbl:'画面をダブルクリック', keyDbl:'カード一覧（進行状況の帯の上と抽選中を除く）',
+    dblLbl:'画面をダブルクリック', keyDbl:'カード一覧。一覧で押すと一覧と背景を非表示（進行状況の帯の上と抽選中を除く）',
     barClickLbl:'帯のカードをクリック', keyBarClick:'チェックを付け外しする（進行状況）',
     barRclickLbl:'帯のカードを右クリック', keyBarRclick:'光らせるキャラを付け替える（進行状況）',
     clickLbl:'カードをクリック', keyToggle:'抽選対象を切り替える（「同じ結果の連続を避ける」を使っているとき）',
@@ -477,7 +477,7 @@ var I18N = {
     keyReset:'Reset the "Avoid Repeats" history and clear progress',
     keyClear:'Check or uncheck the Nightfarer just drawn (when Progress is in use)',
     keyClearBar:'Show or hide Progress (when Progress is in use)',
-    dblLbl:'Double-click the screen', keyDbl:'Card List (except on the Progress bar or during a draw)',
+    dblLbl:'Double-click the screen', keyDbl:'Card List; on the Card List, hide the list and background (except on the Progress bar or during a draw)',
     barClickLbl:'Click a card in the bar', keyBarClick:'Check or uncheck it (Progress)',
     barRclickLbl:'Right-click a card in the bar', keyBarRclick:'Highlight it as the Nightfarer drawn (Progress)',
     clickLbl:'Click a card', keyToggle:'Gray it out or restore it (when "Avoid Repeats" is in use)',
@@ -495,10 +495,12 @@ var I18N = {
 var CHANGELOG = [
   {date:'2026-10-30', ja:[
     '進行状況でチェックを付けたときに、中央にキャラと「CLEAR」の演出を出すように',
-    '進行状況の見た目を調整（チェックしていないカードは明るいまま、チェック済みはより暗く、チェックを付けたら光る枠を外す）'
+    '進行状況の見た目を調整（チェックしていないカードは明るいまま、チェック済みはより暗く、チェックを付けたら光る枠を外す）',
+    'カード一覧で画面をダブルクリックすると、一覧と背景を非表示にするように（もう一度ダブルクリックで戻る）'
   ], en:[
     'Checking a card in Progress now shows a "CLEAR" effect with the Nightfarer in the center',
-    'Adjusted the look of Progress (unchecked cards stay bright, checked cards are darker, and the highlight frame goes away once checked)'
+    'Adjusted the look of Progress (unchecked cards stay bright, checked cards are darker, and the highlight frame goes away once checked)',
+    'Double-clicking the screen on the card list now hides the list and background (double-click again to bring them back)'
   ]},
   {date:'2026-10-28', ja:[
     '「進行状況」を追加（抽選対象のカードとチェックを横一列で表示。4キーで表示／非表示。抽選対象10件まで）',
@@ -1184,9 +1186,13 @@ function startDisplay(){
     else if(!ev.ctrlKey && !ev.metaKey && !ev.altKey && (ev.key === '4' || ((!ev.key || ev.key === 'Unidentified') && (ev.keyCode === 52 || ev.keyCode === 100)))){ ev.preventDefault(); toggleClearBar(); }
   });
   // キーに不慣れな人向けに、画面のダブルクリックでも一覧に戻す（抽選中・ボタンと進行状況の帯の上は除く。押し間違いで抽選を取り消さないため）
+  // 一覧が出ているときは一覧と背景を消して（進行状況は残す）、ダブルクリックで出し入れできるようにする
   document.addEventListener('dblclick', function(ev){
     if(running || (ev.target.closest && ev.target.closest('button, .clear-bar'))) return;
-    reset();
+    var onList = !stage.classList.contains('done') && !canvas.classList.contains('pinned') && !canvas.classList.contains('hidden');
+    if(!onList){ reset(); return; }
+    canvas.classList.add('hidden', 'keep-clear');
+    if(bgEl) bgEl.classList.add('off');
   });
   // OBSで非表示になったら抽選前の状態に戻し、表示されたら（自動抽選ONなら）抽選する。
   // 目のアイコンでの表示切替（Visible）とシーン切替（Active）の両方を拾う
