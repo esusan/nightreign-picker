@@ -139,6 +139,13 @@ body.edit{background:#0f0e14;font-size:14px}
   opacity:0;transition:opacity .6s .9s}
 #clearfx.show .cf-name{opacity:.85}
 #clearfx .cf-name .r-concept{color:var(--muted)}
+/* ALL CLEAR：全員のカードを横一列に並べ、左から順に浮かせて光沢を走らせる（遅れは --d）。文字はカードが出そろってから */
+#clearfx .cf-row{display:flex;gap:20px}
+#clearfx.all .cf-card{transition-delay:var(--d)}
+#clearfx.all.show .cf-card::after{animation-delay:calc(var(--d) + .5s)}
+#clearfx.all .cf-line{transition-delay:1s}
+#clearfx.all .cf-word{transition-delay:1.15s}
+#clearfx.all .cf-name{transition-delay:1.8s;letter-spacing:.2em;text-indent:.2em}
 #canvas.clearing #stage,#canvas.clearing #result,#canvas.clearing .pin{opacity:0}
 #result .r-text{padding:13px 76px;text-align:center;white-space:nowrap;
   background:linear-gradient(90deg,transparent,rgba(8,7,12,.92) 15%,rgba(8,7,12,.92) 85%,transparent);border-top:1px solid var(--gold-soft);border-bottom:1px solid var(--gold-soft)}
@@ -352,6 +359,9 @@ var I18N = {
     saveH:'設定を保存するには',
     saveNote:'今のアドレスバーのURLをブックマークしておけば、設定を保存しておけます。設定データはこのページのURLの中だけに入っているので、サーバーには何も保存されません。',
     openDefault:'初期設定のページを開く',
+    presetH:'おすすめ設定',
+    presetNote:'遊び方に合わせた設定を新しいタブで開きます。キャラ・同じ結果の連続を避ける・進行状況・結果画面のあとだけを差し替え、大きさや背景色などは今の設定のまま引き継ぎます。',
+    preset1:'全キャラ総当たり', preset2:'追跡者ネタビルド6種縛り',
     optH:'オプション',
     scaleH:'カード一覧の大きさ',
     scaleNote:'カード一覧の大きさを、画面いっぱい（100%）を基準に縮小できます。結果画面と「ミニカード」の大きさは変わりません。',
@@ -438,6 +448,9 @@ var I18N = {
     saveH:'Saving Your Settings',
     saveNote:'Bookmark the URL in your address bar to save your settings. All settings live only in this page\'s URL; nothing is saved on a server.',
     openDefault:'Open with Default Settings',
+    presetH:'Recommended Settings',
+    presetNote:'Opens a setup for a way to play in a new tab. Only the Nightfarers, Avoid Repeats, Progress, and After the Result Screen are replaced; size, background color, and the rest carry over from your current settings.',
+    preset1:'Every Nightfarer Run', preset2:'Wylder: 6 Joke Builds',
     optH:'Options',
     scaleH:'Card List Size',
     scaleNote:'Scales down the card list, with 100% filling the screen. Does not change the size of the result screen or the "Mini Card".',
@@ -494,12 +507,12 @@ var I18N = {
 // 更新履歴（新しい順。編集画面の下に出す）
 var CHANGELOG = [
   {date:'2026-10-30', ja:[
-    '進行状況でチェックを付けたときに、中央にキャラと「CLEAR」の演出を出すように',
-    '進行状況の見た目を調整（チェックしていないカードは明るいまま、チェック済みはより暗く、チェックを付けたら光る枠を外す）',
+    '進行状況でチェックを付けたときに、中央にキャラと「CLEAR」の演出を出すように（カード一覧のカードをクリックしたときは出さない）',
+    '進行状況で全員にチェックが付いたときは、全員のカードを並べた「ALL CLEAR」の演出を出すように（最後のキャラの「CLEAR」のあとに続けて出す）',    '進行状況の見た目を調整（チェックしていないカードは明るいまま、チェック済みはより暗く、チェックを付けたら光る枠を外す）',
     'カード一覧で画面をダブルクリックすると、一覧と背景を非表示にするように（もう一度ダブルクリックで戻る）'
   ], en:[
-    'Checking a card in Progress now shows a "CLEAR" effect with the Nightfarer in the center',
-    'Adjusted the look of Progress (unchecked cards stay bright, checked cards are darker, and the highlight frame goes away once checked)',
+    'Checking a card in Progress now shows a "CLEAR" effect with the Nightfarer in the center (not when clicking a card in the card list)',
+    'When every Nightfarer in Progress is checked, an "ALL CLEAR" effect shows all the cards in a row (right after the last Nightfarer\'s "CLEAR")',    'Adjusted the look of Progress (unchecked cards stay bright, checked cards are darker, and the highlight frame goes away once checked)',
     'Double-clicking the screen on the card list now hides the list and background (double-click again to bring them back)'
   ]},
   {date:'2026-10-28', ja:[
@@ -586,6 +599,17 @@ var HIST_KEY = 'nightreign-picker-history', HIST_MAX = 20; // 連続を避ける
 var PIN_DELAY_MS = 5000; // 結果画面を見せてから指定位置表示に切り替えるまで
 var CLEAR_MAX = 10; // 進行状況を出せる抽選対象の数（横一列に並べるので多いと入らない）
 var CLEAR_FX_MS = 4500; // チェックを付けたときのクリア演出を出しておく時間
+var ALL_CLEAR_FX_MS = 6500; // 全員にチェックが付いたときの ALL CLEAR 演出を出しておく時間
+var SHOW_PRESETS = false; // おすすめ設定の欄を編集ページに出すか（いったん非表示。復活させるときは true にして更新履歴にも足す）
+// おすすめ設定：表示名のキー・[概念, キャラid]の並び・連続を避ける（r）・進行状況（c）・結果画面のあと5秒で非表示（h）
+var PRESETS = [
+  // 全キャラ総当たり：進行状況でチェックしたキャラを出さずに1体ずつ潰していく
+  {key:'preset1', r:3, c:true, h:true,
+    e:['wylder','guardian','ironeye','duchess','raider','revenant','recluse','executor','scholar','undertaker'].map(function(id){ return ['', id]; })},
+  // 追跡者ネタビルド6種縛り：全部出るまで同じビルドを出さない
+  {key:'preset2', r:2, c:false, h:false,
+    e:['ハルハル','拳','瓦礫','1段','知信ステ変','致命特化'].map(function(c){ return [c, 'wylder']; })}
+];
 var CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 var SOUND_ENABLED = false; // 効果音はOBSでブチブチ鳴る問題が解決するまで止めている（オプションも出さない）
 var DEFAULT = {
@@ -906,28 +930,56 @@ function startDisplay(){
     else if(resultEl.classList.contains('show') && !hidden){ if(lastWin >= 0) showResult(lastWin, false); else reset(); }
   }
   function paintClear(){ if(clearBar) paintClearBar(clearBar, cleared, lastWin); }
-  // 帯のカードのクリック・Cキー（・連動中は一覧のカードのクリック）で、クリアのチェックを付け外しする
-  function toggleCleared(i){
+  // 帯のカードのクリック・Cキー（・連動中は一覧のカードのクリック）で、クリアのチェックを付け外しする。
+  // quiet のとき（一覧のカードのクリック）はクリア演出を出さない
+  function toggleCleared(i, quiet){
     if((!clearBar && state.noRepeat !== 3) || i < 0) return;
-    if(cleared[i]){ delete cleared[i]; hideClearFx(); } else { cleared[i] = true; if(!running) showClearFx(i); }
+    if(cleared[i]){ delete cleared[i]; hideClearFx(); }
+    else {
+      cleared[i] = true;
+      // 最後の1体で全員そろったら、その1体の CLEAR を出し終えてから ALL CLEAR を続けて出す
+      if(!running && !quiet) showClearFx(i, Object.keys(cleared).length >= cells.length ? showAllClearFx : null);
+    }
     saveHistory();
     paintClear();
     if(!running) paintExcluded();
   }
-  // クリア演出。チェックを付けたときだけ、中央にキャラと「CLEAR」を CLEAR_FX_MS 出して消す（後ろの画面は出ている間だけ隠す）
+  // クリア演出。チェックを付けたときだけ、中央にキャラと「CLEAR」を CLEAR_FX_MS 出して消す（後ろの画面は出ている間だけ隠す）。
+  // 全員そろったときは、最後の1体の CLEAR のあとに ALL CLEAR を ALL_CLEAR_FX_MS 出す
   var clearFxTimer = null;
-  function showClearFx(i){
+  function clearFxCard(i, w){
     var big = cells[i].cloneNode(true);
     big.classList.remove('win', 'on', 'out');
-    big.style.setProperty('--cw', Math.floor(Math.min(CANVAS_H * 0.5 * 0.75, CANVAS_W * 0.3)) + 'px');
+    big.style.setProperty('--cw', w + 'px');
+    return el('div', {className:'cf-card'}, [big]);
+  }
+  function clearFxTitle(word){
+    return el('div', {className:'cf-title'}, [el('span', {className:'cf-line'}), el('span', {className:'cf-word', text:word}), el('span', {className:'cf-line r'})]);
+  }
+  function showClearFx(i, next){
     var name = el('div', {className:'cf-name'});
     if(pool[i].concept) name.appendChild(el('span', {className:'r-concept', text:pool[i].concept}));
     name.appendChild(document.createTextNode(charName(charOf(pool[i]))));
+    playClearFx([clearFxCard(i, Math.floor(Math.min(CANVAS_H * 0.5 * 0.75, CANVAS_W * 0.3))), clearFxTitle('CLEAR'), name], false, CLEAR_FX_MS, next);
+  }
+  // ALL CLEAR：全員のカードを帯と同じ順に横一列で並べ、下に「ALL CLEAR」と「8 / 8」を出す
+  function showAllClearFx(){
+    var n = cells.length, gap = 20;
+    var w = Math.floor(Math.min(260, (CANVAS_W * 0.86 - gap * (n - 1)) / n));
+    var row = el('div', {className:'cf-row'});
+    cells.forEach(function(c, i){
+      var card = clearFxCard(i, w);
+      card.style.setProperty('--d', (i * 0.12) + 's');
+      row.appendChild(card);
+    });
+    playClearFx([row, clearFxTitle('ALL CLEAR'), el('div', {className:'cf-name', text:n + ' / ' + n})], true, ALL_CLEAR_FX_MS);
+  }
+  // next があれば、出し終えたあと後ろの画面を隠したまま一度消して（フェードの分だけ待って）続けて出す
+  function playClearFx(children, all, ms, next){
     clearFx.innerHTML = '';
     clearFx.classList.remove('show');
-    clearFx.appendChild(el('div', {className:'cf-card'}, [big]));
-    clearFx.appendChild(el('div', {className:'cf-title'}, [el('span', {className:'cf-line'}), el('span', {className:'cf-word', text:'CLEAR'}), el('span', {className:'cf-line r'})]));
-    clearFx.appendChild(name);
+    clearFx.classList.toggle('all', all);
+    children.forEach(function(c){ clearFx.appendChild(c); });
     void clearFx.offsetHeight;
     clearFx.classList.add('show');
     // 背景色がOFFなら背景なし。すでに出ているときは重ねない（二重に暗くなるため）
@@ -935,7 +987,7 @@ function startDisplay(){
     canvas.classList.add('clearing');
     playSe('decide');
     clearTimeout(clearFxTimer);
-    clearFxTimer = setTimeout(hideClearFx, CLEAR_FX_MS);
+    clearFxTimer = setTimeout(next ? function(){ clearFx.classList.remove('show'); clearFxTimer = setTimeout(next, 500); } : hideClearFx, ms);
   }
   function hideClearFx(){
     clearTimeout(clearFxTimer); clearFxTimer = null;
@@ -952,8 +1004,8 @@ function startDisplay(){
       if(Object.keys(usedWinners).length >= cells.length) usedWinners = {}; // 全部に印が付いたら、抽選で一巡したときと同じく戻す
     }
     else if(state.noRepeat === 1) lastWinner = lastWinner === i ? -1 : i;
-    // 3：クリアのチェックを付け外しする（帯のカードをクリックしたときと同じ）
-    else if(state.noRepeat === 3){ toggleCleared(i); return; }
+    // 3：クリアのチェックを付け外しする（帯のカードをクリックしたときと同じ。ただしクリア演出は出さない）
+    else if(state.noRepeat === 3){ toggleCleared(i, true); return; }
     else return;
     saveHistory();
     paintExcluded();
@@ -1474,7 +1526,20 @@ function startEditor(){
     el('h2', {text:t('saveH')}),
     el('p', {className:'ed-note', text:t('saveNote')}),
     // 今の設定を失わないよう、初期設定のページは新しいタブで開く（言語は今のまま）
-    el('button', {className:'b', style:'margin-top:8px', text:t('openDefault'), onclick:function(){ window.open(baseUrl() + '?lang=' + LANG, '_blank'); }})
+    el('button', {className:'b', style:'margin-top:8px', text:t('openDefault'), onclick:function(){ window.open(baseUrl() + '?lang=' + LANG, '_blank'); }}),
+    // おすすめ設定も新しいタブで開く。見た目の設定（大きさ・背景色・帯の位置など）は今のものを引き継ぐ
+    SHOW_PRESETS ? el('h2', {text:t('presetH')}) : null,
+    SHOW_PRESETS ? el('p', {className:'ed-note', text:t('presetNote')}) : null,
+    !SHOW_PRESETS ? null : el('div', {className:'list-tools'}, PRESETS.map(function(p){
+      return el('button', {className:'b', text:t(p.key), onclick:function(){
+        var st = JSON.parse(JSON.stringify(state));
+        st.entries = p.e.map(function(x){ return {concept:x[0], charId:x[1], enabled:true}; });
+        st.noRepeat = p.r;
+        st.clear.on = p.c;
+        st.pin.on = false; st.hideAfter = p.h; // 結果画面のあと：そのまま表示か5秒後に非表示（ミニカードにはしない）
+        window.open(editUrl(st), '_blank');
+      }});
+    }))
   ]);
 
   var obsLeft = el('div', {}, [
