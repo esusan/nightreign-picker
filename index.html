@@ -148,14 +148,13 @@ body.edit{background:#0f0e14;font-size:14px}
 .clear-bar .cell.pinc .label{padding:calc(var(--u)*8) 3% calc(var(--u)*24)}
 .clear-bar .cell.pinc .ttl{font-size:calc(var(--cw)*.18);letter-spacing:0;line-height:1.15;white-space:normal;word-break:break-all;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-/* 抽選で決まったキャラは光らせ、ほかのカードは少し暗くする */
-.clear-bar .cell.cur{border-color:var(--gold);z-index:1;box-shadow:0 0 0 2px var(--gold),0 0 14px var(--gold),0 0 28px var(--gold-soft)}
-.clear-bar.has-cur .cell:not(.cur) .art{filter:brightness(.6)}
-/* チェック済み：カードをグレーアウトし、右下に丸いバッジ＋チェックを付ける */
-.clear-bar .cell.cleared .art,.clear-bar.has-cur .cell.cleared:not(.cur) .art{filter:grayscale(1) brightness(.5)}
-.clear-bar .cell.cleared .ttl{color:#9a9eab}
+/* 抽選で決まったキャラは光らせる。未チェックのカードは暗くしない（明るい＝残り、灰色＝済みで見分けるため） */
+.clear-bar .cell.cur{border-color:var(--gold);z-index:1;box-shadow:0 0 0 4px var(--gold),0 0 14px var(--gold),0 0 28px var(--gold-soft)}
+/* チェック済み：カードをしっかりグレーアウトし、右下に小さめの丸いバッジ＋チェックを付ける */
+.clear-bar .cell.cleared .art{filter:grayscale(1) brightness(.35)}
+.clear-bar .cell.cleared .ttl{color:#7d8190}
 /* グレーアウトした上でも埋もれないよう、金で塗りつぶした丸に暗い色のチェックを抜く */
-.cl-mark{display:none;position:absolute;right:5%;bottom:5%;width:42%;aspect-ratio:1/1;z-index:4;box-sizing:border-box;padding:7%;border-radius:50%;
+.cl-mark{display:none;position:absolute;right:5%;bottom:5%;width:32%;aspect-ratio:1/1;z-index:4;box-sizing:border-box;padding:6%;border-radius:50%;
   color:#10121c;background:var(--gold);box-shadow:0 0 3px #000}
 .cl-mark svg{display:block;width:100%;height:100%}
 .cell.cleared .cl-mark{display:block}
