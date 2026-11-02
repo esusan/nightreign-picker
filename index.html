@@ -128,6 +128,8 @@ body.edit{background:#0f0e14;font-size:14px}
 #clearfx.show .cf-card::after{animation:cfSheen .9s ease-in-out .35s forwards}
 @keyframes cfSheen{to{transform:translateX(120%)}}
 /* 文字：左右の細い線が中央から伸び、CLEARが左から現れる。名前は小さく添える */
+.cf-text{display:flex;flex-direction:column;align-items:center;gap:26px;padding:22px 76px;white-space:nowrap; /* 背景の明るさに負けないよう、結果画面の r-text と同じ帯を敷く */
+  background:linear-gradient(90deg,transparent,rgba(8,7,12,.92) 15%,rgba(8,7,12,.92) 85%,transparent);border-top:1px solid var(--gold-soft);border-bottom:1px solid var(--gold-soft)}
 .cf-title{display:flex;align-items:center;gap:36px}
 .cf-line{width:220px;height:1px;background:linear-gradient(90deg,transparent,var(--clear));transform:scaleX(0);transform-origin:right;transition:transform .7s cubic-bezier(.2,.8,.2,1) .3s}
 .cf-line.r{background:linear-gradient(270deg,transparent,var(--clear));transform-origin:left}
@@ -135,7 +137,7 @@ body.edit{background:#0f0e14;font-size:14px}
 .cf-word{font-family:"Cormorant Garamond",var(--font-display);font-weight:600;font-size:92px;line-height:1;letter-spacing:.5em;text-indent:.5em;color:var(--clear);
   text-shadow:0 0 24px rgba(244,220,92,.45),0 0 4px #000;clip-path:inset(0 100% 0 0);transition:clip-path .8s cubic-bezier(.6,0,.2,1) .45s}
 #clearfx.show .cf-word{clip-path:inset(0 0 0 0)}
-#clearfx .cf-name{margin-top:-18px;font-size:30px;letter-spacing:.35em;text-indent:.35em;color:#eef1fb;text-shadow:0 0 10px #000,0 0 4px #000;
+#clearfx .cf-name{font-size:30px;letter-spacing:.35em;text-indent:.35em;color:#eef1fb;text-shadow:0 0 10px #000,0 0 4px #000;
   opacity:0;transition:opacity .6s .9s}
 #clearfx.show .cf-name{opacity:.85}
 #clearfx .cf-name .r-concept{color:var(--muted)}
@@ -507,9 +509,11 @@ var I18N = {
 // 更新履歴（新しい順。編集画面の下に出す）
 var CHANGELOG = [
   {date:'2026-11-02', ja:[
-    'Rキーでリセットしたときに、進行状況の光る枠も外すように'
+    'Rキーでリセットしたときに、進行状況の光る枠も外すように',
+    '「CLEAR」「ALL CLEAR」の文字の後ろに帯を敷いて読みやすく'
   ], en:[
-    'Pressing R now also removes the highlight frame in Progress'
+    'Pressing R now also removes the highlight frame in Progress',
+    'Added a band behind the "CLEAR" and "ALL CLEAR" text to make it easier to read'
   ]},
   {date:'2026-10-30', ja:[
     '進行状況でチェックを付けたときに、中央にキャラと「CLEAR」の演出を出すように（カード一覧のカードをクリックしたときは出さない）',
@@ -959,14 +963,15 @@ function startDisplay(){
     big.style.setProperty('--cw', w + 'px');
     return el('div', {className:'cf-card'}, [big]);
   }
-  function clearFxTitle(word){
-    return el('div', {className:'cf-title'}, [el('span', {className:'cf-line'}), el('span', {className:'cf-word', text:word}), el('span', {className:'cf-line r'})]);
+  function clearFxText(word, sub){
+    var title = el('div', {className:'cf-title'}, [el('span', {className:'cf-line'}), el('span', {className:'cf-word', text:word}), el('span', {className:'cf-line r'})]);
+    return el('div', {className:'cf-text'}, [title, sub]);
   }
   function showClearFx(i, next){
     var name = el('div', {className:'cf-name'});
     if(pool[i].concept) name.appendChild(el('span', {className:'r-concept', text:pool[i].concept}));
     name.appendChild(document.createTextNode(charName(charOf(pool[i]))));
-    playClearFx([clearFxCard(i, Math.floor(Math.min(CANVAS_H * 0.5 * 0.75, CANVAS_W * 0.3))), clearFxTitle('CLEAR'), name], false, CLEAR_FX_MS, next);
+    playClearFx([clearFxCard(i, Math.floor(Math.min(CANVAS_H * 0.5 * 0.75, CANVAS_W * 0.3))), clearFxText('CLEAR', name)], false, CLEAR_FX_MS, next);
   }
   // ALL CLEAR：全員のカードを帯と同じ順に横一列で並べ、下に「ALL CLEAR」と「8 / 8」を出す
   function showAllClearFx(){
@@ -978,7 +983,7 @@ function startDisplay(){
       card.style.setProperty('--d', (i * 0.12) + 's');
       row.appendChild(card);
     });
-    playClearFx([row, clearFxTitle('ALL CLEAR'), el('div', {className:'cf-name', text:n + ' / ' + n})], true, ALL_CLEAR_FX_MS);
+    playClearFx([row, clearFxText('ALL CLEAR', el('div', {className:'cf-name', text:n + ' / ' + n}))], true, ALL_CLEAR_FX_MS);
   }
   // next があれば、出し終えたあと後ろの画面を隠したまま一度消して（フェードの分だけ待って）続けて出す
   function playClearFx(children, all, ms, next){
