@@ -219,6 +219,11 @@ body.edit{background:#0f0e14;font-size:14px}
 .foot-links{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:36px}
 .foot-label{width:8em;box-sizing:border-box;text-align:center;padding:2px 8px;font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:4px}
 .foot-name{color:var(--text);font-size:13.5px}
+a.foot-name{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+a.foot-name:hover{color:var(--gold);text-decoration-color:var(--gold)}
+/* えすさんのページ（https://esusan.github.io/）へのリンク。「えす」のアイコンを丸く出す */
+.social.home{overflow:hidden}
+.social.home img{display:block;width:100%;height:100%;object-fit:cover}
 .ed-foot .social{width:30px;height:30px}
 .ed-foot .social svg{width:16px;height:16px}
 .ed-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
@@ -413,7 +418,7 @@ var I18N = {
     creditNote:'必須ではありませんが、概要欄などでこのページを紹介してもらえると嬉しいです。',
     creditText:'ナイトレイン キャラランダムツール',
     copiedCredit:'紹介文をコピーしました',
-    author:'作成者', authorName:'えすさん',
+    author:'作成者', authorName:'えすさん', homeLabel:'えすさんのページ',
     disclaimer:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'
   },
   en:{
@@ -502,12 +507,17 @@ var I18N = {
     creditNote:'Not required, but I\'d be happy if you shared this page in your stream or video description.',
     creditText:'NIGHTREIGN Random Nightfarer Picker',
     copiedCredit:'Copied the example text',
-    author:'Created by', authorName:'esusan',
+    author:'Created by', authorName:'esusan', homeLabel:'esusan\'s page',
     disclaimer:'* This is an unofficial fan tool, not affiliated with the game\'s developer or publisher. Game images are the property of their respective owners.'
   }
 };
 // 更新履歴（新しい順。編集画面の下に出す）
 var CHANGELOG = [
+  {date:'2026-11-07', ja:[
+    'ページ下の作成者の名前とアイコンから、えすさんのページに行けるように'
+  ], en:[
+    'Added a link to esusan\'s page from the creator name and icon at the bottom'
+  ]},
   {date:'2026-11-02', ja:[
     'Rキーでリセットしたときに、進行状況の光る枠も外すように',
     '「CLEAR」「ALL CLEAR」の文字の後ろに帯を敷いて読みやすく'
@@ -784,11 +794,12 @@ function keyList(head, rows){
   ]);
 }
 
-// アクセス数の集計（GoatCounter）。OBSで読み込むたびに数えないよう編集画面だけ、設定（?d=）は送らず言語だけ送る
+// アクセス数の集計（GoatCounter）。OBSで読み込むたびに数えないよう編集画面だけ、設定（?d=）は送らない
+// 日本語・英語どちらで開いても /ja に数える（2026-11-07まで言語ごとに /ja・/en に分けていたのを統合）
 // count.jsはURLのクエリを必ず送るので使わず、受け口に直接送る。参照元もクエリを落とす（言語切替で開き直すと自分の?d=が入るため）
 function countView(){
   if(location.protocol === 'file:' || /(localhost$|^127\.|^\[::1\]$)/.test(location.hostname)) return;
-  var q = {p:'/' + LANG, t:document.title, r:document.referrer.replace(/[?#].*$/, ''), s:screen.width, b:navigator.webdriver ? 153 : 0, rnd:Math.random().toString(36).slice(2)};
+  var q = {p:'/ja', t:document.title, r:document.referrer.replace(/[?#].*$/, ''), s:screen.width, b:navigator.webdriver ? 153 : 0, rnd:Math.random().toString(36).slice(2)};
   var url = 'https://esusan.goatcounter.com/count?' + Object.keys(q).map(function(k){ return k + '=' + encodeURIComponent(q[k]); }).join('&');
   if(!(navigator.sendBeacon && navigator.sendBeacon(url))) new Image().src = url;
 }
@@ -1621,6 +1632,11 @@ function startEditor(){
     ])
   ]);
 
+  // えすさんのページ（https://esusan.github.io/）へのリンク。「えす」のアイコンを丸く出す
+  var homeLink = el('a', {className:'social home', href:'https://esusan.github.io/', title:t('homeLabel')});
+  homeLink.setAttribute('aria-label', t('homeLabel'));
+  homeLink.innerHTML = '<img src="https://esusan.github.io/img/favicon.png" alt="" width="30" height="30">';
+
   var xLink = el('a', {className:'social', href:'https://x.com/u_se_nr', target:'_blank', rel:'noopener noreferrer', title:'X'});
   xLink.setAttribute('aria-label', 'X');
   xLink.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
@@ -1701,8 +1717,8 @@ function startEditor(){
     el('div', {className:'ed-foot'}, [
       el('div', {className:'foot-links'}, [
         el('span', {className:'foot-label', text:t('author')}),
-        el('span', {className:'foot-name', text:t('authorName')}),
-        xLink, ytLink
+        el('a', {className:'foot-name', href:'https://esusan.github.io/', text:t('authorName')}),
+        homeLink, xLink, ytLink
       ]),
       el('p', {text:t('disclaimer')})
     ])
