@@ -221,6 +221,8 @@ body.edit{background:#0f0e14;font-size:14px}
 .foot-name{color:var(--text);font-size:13.5px}
 a.foot-name{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 a.foot-name:hover{color:var(--gold);text-decoration-color:var(--gold)}
+/* 他に作ったツールへのリンク。作成者の行の下に並べる */
+.foot-more{margin-top:6px;column-gap:16px}
 /* えすさんのページ（https://esusan.github.io/）へのリンク。「えす」のアイコンを丸く出す */
 .social.home{overflow:hidden}
 .social.home img{display:block;width:100%;height:100%;object-fit:cover}
@@ -419,6 +421,7 @@ var I18N = {
     creditText:'ナイトレイン キャラランダムツール',
     copiedCredit:'紹介文をコピーしました',
     author:'作成者', authorName:'えすさん', homeLabel:'えすさんのページ',
+    moreTools:'他のツール', moreDict:'ナイトレイン読み上げ辞書', moreSide:'side-comment',
     disclaimer:'※このツールは非公式のファンツールです。ゲームの開発元・販売元とは関係ありません。ゲーム画像の著作権は各権利者に帰属します。'
   },
   en:{
@@ -508,6 +511,7 @@ var I18N = {
     creditText:'NIGHTREIGN Random Nightfarer Picker',
     copiedCredit:'Copied the example text',
     author:'Created by', authorName:'esusan', homeLabel:'esusan\'s page',
+    moreTools:'More tools', moreDict:'NIGHTREIGN TTS dictionary (JP)', moreSide:'side-comment (JP)',
     disclaimer:'* This is an unofficial fan tool, not affiliated with the game\'s developer or publisher. Game images are the property of their respective owners.'
   }
 };
@@ -1719,6 +1723,11 @@ function startEditor(){
         el('span', {className:'foot-label', text:t('author')}),
         el('a', {className:'foot-name', href:'https://esusan.github.io/', text:t('authorName')}),
         homeLink, xLink, ytLink
+      ]),
+      el('div', {className:'foot-links foot-more'}, [
+        el('span', {className:'foot-label', text:t('moreTools')}),
+        el('a', {className:'foot-name', href:'https://esusan.github.io/nightreign-dict/', text:t('moreDict')}),
+        el('a', {className:'foot-name', href:'https://esusan.github.io/onecomme-side-comment/', text:t('moreSide')})
       ]),
       el('p', {text:t('disclaimer')})
     ])
